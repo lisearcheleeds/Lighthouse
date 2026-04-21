@@ -1,0 +1,22 @@
+{
+    "name": "LighthouseExtends.InputLayer.Tests.EditMode",
+    "rootNamespace": "",
+    "references": [
+        "LighthouseExtends.InputLayer.Runtime",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

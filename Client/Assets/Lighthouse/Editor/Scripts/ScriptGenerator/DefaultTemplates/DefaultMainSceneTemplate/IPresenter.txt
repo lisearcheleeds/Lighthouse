@@ -1,0 +1,9 @@
+#OUTPUT I{{SCENE_NAME}}Presenter.cs
+namespace {{NAMESPACE}}
+{
+    public interface I{{SCENE_NAME}}Presenter
+    {
+        void Setup();
+        void OnEnter();
+    }
+}

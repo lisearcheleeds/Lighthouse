@@ -1,0 +1,23 @@
+{
+    "name": "LighthouseExtends.TextTable.Tests.EditMode",
+    "rootNamespace": "",
+    "references": [
+        "LighthouseExtends.TextTable.Runtime",
+        "LighthouseExtends.Language.Runtime",
+        "UniTask"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

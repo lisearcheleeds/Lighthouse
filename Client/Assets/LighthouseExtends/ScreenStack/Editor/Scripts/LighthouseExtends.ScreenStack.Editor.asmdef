@@ -1,0 +1,19 @@
+{
+    "name": "LighthouseExtends.ScreenStack.Editor",
+    "rootNamespace": "",
+    "references": [
+        "Lighthouse.Editor",
+        "LighthouseExtends.ScreenStack.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

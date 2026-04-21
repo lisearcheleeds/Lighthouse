@@ -1,0 +1,20 @@
+{
+  "name": "com.lisearcheleeds.lighthouse-extends.animation",
+  "version": "0.9.0",
+  "displayName": "Lighthouse Extends - Animation",
+  "description": "In/Out animation clip playback via PlayableGraph for Lighthouse scene transitions.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Lise",
+    "url": "https://github.com/lisearcheleeds"
+  },
+  "keywords": [
+    "lighthouse",
+    "animation",
+    "transition",
+    "unitask"
+  ],
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.10"
+  }
+}

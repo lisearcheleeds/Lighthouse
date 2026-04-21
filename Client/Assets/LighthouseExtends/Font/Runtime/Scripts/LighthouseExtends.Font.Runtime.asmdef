@@ -1,0 +1,20 @@
+{
+    "name": "LighthouseExtends.Font.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "LighthouseExtends.Language.Runtime",
+        "R3.Unity",
+        "UniTask",
+        "VContainer",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

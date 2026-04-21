@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce5ca3f2ca374ffea256d279cf86512a, type: 3}
+  m_Name: SceneEditSettings
+  m_EditorClassIdentifier: Lighthouse.Editor::Lighthouse.Editor.ScriptableObject.SceneEditSettings
+  enableSceneEditProcess: 1
+  canvasSceneEditorOnlyObject: {fileID: 0}
+  editorOnlyObjectName: __EditorOnly__

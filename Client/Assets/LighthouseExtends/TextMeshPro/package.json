@@ -1,0 +1,23 @@
+{
+  "name": "com.lisearcheleeds.lighthouse-extends.textmeshpro",
+  "version": "0.9.0",
+  "displayName": "Lighthouse Extends - TextMeshPro",
+  "description": "Extends TextMeshProUGUI to automatically reflect language and font changes via TextTableService and FontService.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Lise",
+    "url": "https://github.com/lisearcheleeds"
+  },
+  "keywords": [
+    "lighthouse",
+    "textmeshpro",
+    "localization",
+    "font",
+    "r3"
+  ],
+  "dependencies": {
+    "com.lisearcheleeds.lighthouse-extends.font": "0.1.0",
+    "com.lisearcheleeds.lighthouse-extends.texttable": "0.1.0",
+    "com.cysharp.r3": "1.3.0"
+  }
+}

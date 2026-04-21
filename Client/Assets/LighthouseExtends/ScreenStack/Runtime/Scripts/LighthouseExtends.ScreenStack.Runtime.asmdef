@@ -1,0 +1,19 @@
+{
+    "name": "LighthouseExtends.ScreenStack.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "Lighthouse.Runtime",
+        "UniTask",
+        "VContainer",
+        "LighthouseExtends.UIComponent.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

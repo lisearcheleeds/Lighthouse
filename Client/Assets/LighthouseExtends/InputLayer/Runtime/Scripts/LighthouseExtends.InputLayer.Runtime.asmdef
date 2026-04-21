@@ -1,0 +1,17 @@
+{
+    "name": "LighthouseExtends.InputLayer.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "Unity.InputSystem",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

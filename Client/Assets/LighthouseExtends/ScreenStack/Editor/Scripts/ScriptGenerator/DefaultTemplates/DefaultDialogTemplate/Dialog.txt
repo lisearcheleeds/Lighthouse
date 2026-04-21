@@ -1,0 +1,27 @@
+#OUTPUT {{DIALOG_NAME}}Dialog.cs
+using LighthouseExtends.ScreenStack;
+using {{BASE_CLASS_NAMESPACE}};
+using UnityEngine;
+using VContainer;
+
+namespace {{NAMESPACE}}
+{
+    public sealed class {{DIALOG_NAME}}Dialog : {{BASE_CLASS}}, IScreenStackSetup<{{DIALOG_NAME}}Data>
+    {
+        [SerializeField] {{DIALOG_NAME}}View {{DIALOG_NAME_CAMEL}}View;
+
+        {{DIALOG_NAME}}Presenter presenter;
+
+        [Inject]
+        public void Construct(IObjectResolver objectResolver)
+        {
+            presenter = new {{DIALOG_NAME}}Presenter();
+            objectResolver.Inject(presenter);
+        }
+
+        public void Setup({{DIALOG_NAME}}Data screenStackData)
+        {
+            presenter.Bind({{DIALOG_NAME_CAMEL}}View, screenStackData);
+        }
+    }
+}

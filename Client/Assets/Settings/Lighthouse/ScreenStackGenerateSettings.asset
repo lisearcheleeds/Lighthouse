@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96dcc159cf8892e4586ae70d3e740fb8, type: 3}
+  m_Name: ScreenStackGenerateSettings
+  m_EditorClassIdentifier: LighthouseExtends.ScreenStack.Editor::LighthouseExtends.ScreenStack.Editor.ScriptableObject.ScreenStackGenerateSettings
+  screenStackEntityFactoryDirectoryAsset: {fileID: 0}
+  screenStackEntityFactoryClassName: ScreenStackEntityFactory
+  screenStackEntityFactoryNamespace: YourProduct
+  screenStackEntityFactoryTemplate: {fileID: 4900000, guid: 92696567377dffb4b8a91a147196bcaa, type: 3}
+  screenStackDialogScriptOutputDirectoryAsset: {fileID: 0}
+  screenStackDialogScriptNamespace: YourProduct
+  screenStackScriptTemplates:
+  - {fileID: 11400000, guid: daf1342a90e36cd408a59214cd63a223, type: 2}

@@ -1,0 +1,23 @@
+{
+    "name": "LighthouseExtends.ScreenStack.Tests.EditMode",
+    "rootNamespace": "",
+    "references": [
+        "LighthouseExtends.ScreenStack.Runtime",
+        "Lighthouse.Runtime",
+        "UniTask"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

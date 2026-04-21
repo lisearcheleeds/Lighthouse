@@ -1,0 +1,9 @@
+#OUTPUT {{DIALOG_NAME}}View.cs
+using UnityEngine;
+
+namespace {{NAMESPACE}}
+{
+    public class {{DIALOG_NAME}}View : MonoBehaviour
+    {
+    }
+}

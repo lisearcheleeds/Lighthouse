@@ -1,0 +1,11 @@
+#OUTPUT {{DIALOG_NAME}}Data.cs
+using LighthouseExtends.ScreenStack;
+
+namespace {{NAMESPACE}}
+{
+    public sealed class {{DIALOG_NAME}}Data : IScreenStackData
+    {
+        public bool IsSystem => false;
+        public bool IsOverlayOpen => false;
+    }
+}

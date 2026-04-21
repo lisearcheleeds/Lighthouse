@@ -1,0 +1,19 @@
+{
+  "name": "LighthouseExtends.TextMeshPro.Runtime",
+  "rootNamespace": "",
+  "references": [
+    "LighthouseExtends.Font.Runtime",
+    "LighthouseExtends.TextTable.Runtime",
+    "R3.Unity",
+    "Unity.TextMeshPro"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

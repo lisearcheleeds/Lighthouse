@@ -1,0 +1,9 @@
+#OUTPUT {{SCENE_NAME}}View.cs
+using UnityEngine;
+
+namespace {{NAMESPACE}}
+{
+    public sealed class {{SCENE_NAME}}View : MonoBehaviour, I{{SCENE_NAME}}View
+    {
+    }
+}

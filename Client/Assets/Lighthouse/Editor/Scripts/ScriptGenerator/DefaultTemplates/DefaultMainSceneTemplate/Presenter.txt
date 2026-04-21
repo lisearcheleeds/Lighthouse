@@ -1,0 +1,24 @@
+#OUTPUT {{SCENE_NAME}}Presenter.cs
+using VContainer;
+
+namespace {{NAMESPACE}}
+{
+    public sealed class {{SCENE_NAME}}Presenter : I{{SCENE_NAME}}Presenter
+    {
+        I{{SCENE_NAME}}View {{SCENE_NAME_CAMEL}}View;
+
+        [Inject]
+        public void Construct(I{{SCENE_NAME}}View {{SCENE_NAME_CAMEL}}View)
+        {
+            this.{{SCENE_NAME_CAMEL}}View = {{SCENE_NAME_CAMEL}}View;
+        }
+
+        void I{{SCENE_NAME}}Presenter.Setup()
+        {
+        }
+
+        void I{{SCENE_NAME}}Presenter.OnEnter()
+        {
+        }
+    }
+}

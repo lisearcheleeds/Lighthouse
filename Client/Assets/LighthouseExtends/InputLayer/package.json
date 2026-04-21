@@ -1,0 +1,21 @@
+{
+  "name": "com.lisearcheleeds.lighthouse-extends.inputlayer",
+  "version": "0.9.0",
+  "displayName": "Lighthouse Extends - InputLayer",
+  "description": "Stack-based input dispatch over InputActionAsset. A layer can consume an event or block all lower layers.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Lise",
+    "url": "https://github.com/lisearcheleeds"
+  },
+  "keywords": [
+    "lighthouse",
+    "input",
+    "inputsystem",
+    "vcontainer"
+  ],
+  "dependencies": {
+    "com.unity.inputsystem": "1.17.0",
+    "jp.hadashikick.vcontainer": "1.17.0"
+  }
+}

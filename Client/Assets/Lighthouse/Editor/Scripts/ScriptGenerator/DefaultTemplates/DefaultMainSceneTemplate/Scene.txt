@@ -1,0 +1,40 @@
+#OUTPUT {{SCENE_FILE_NAME}}.cs
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using Lighthouse.Scene;
+using {{BASE_CLASS_NAMESPACE}};
+using {{GENERATED_SCENE_ID_NAMESPACE}};
+using VContainer;
+
+namespace {{NAMESPACE}}
+{
+    public class {{SCENE_FILE_NAME}} : {{BASE_CLASS}}
+    {
+        I{{SCENE_NAME}}Presenter {{SCENE_NAME_CAMEL}}Presenter;
+
+        public override MainSceneId MainSceneId => {{SCENE_ID_CLASS}}.{{SCENE_NAME}};
+
+        public class {{SCENE_NAME}}TransitionData : TransitionDataBase
+        {
+            public override MainSceneId MainSceneId => {{SCENE_ID_CLASS}}.{{SCENE_NAME}};
+        }
+
+        [Inject]
+        public void Construct(I{{SCENE_NAME}}Presenter {{SCENE_NAME_CAMEL}}Presenter)
+        {
+            this.{{SCENE_NAME_CAMEL}}Presenter = {{SCENE_NAME_CAMEL}}Presenter;
+        }
+
+        protected override UniTask OnSetup()
+        {
+            {{SCENE_NAME_CAMEL}}Presenter.Setup();
+            return UniTask.CompletedTask;
+        }
+
+        protected override UniTask OnEnter({{SCENE_NAME}}TransitionData transitionData, SceneTransitionContext context, CancellationToken cancelToken)
+        {
+            {{SCENE_NAME_CAMEL}}Presenter.OnEnter();
+            return UniTask.CompletedTask;
+        }
+    }
+}

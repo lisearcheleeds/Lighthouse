@@ -1,0 +1,27 @@
+#OUTPUT {{DIALOG_NAME}}Presenter.cs
+using Cysharp.Threading.Tasks;
+using LighthouseExtends.ScreenStack;
+using VContainer;
+
+namespace {{NAMESPACE}}
+{
+    public sealed class {{DIALOG_NAME}}Presenter
+    {
+        IScreenStackModule screenStackModule;
+
+        {{DIALOG_NAME}}View dialogView;
+        {{DIALOG_NAME}}Data screenStackData;
+
+        [Inject]
+        public void Construct(IScreenStackModule screenStackModule)
+        {
+            this.screenStackModule = screenStackModule;
+        }
+
+        public void Bind({{DIALOG_NAME}}View dialogView, {{DIALOG_NAME}}Data screenStackData)
+        {
+            this.dialogView = dialogView;
+            this.screenStackData = screenStackData;
+        }
+    }
+}

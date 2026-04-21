@@ -1,0 +1,19 @@
+{
+  "name": "LighthouseExtends.TextMeshPro.Editor",
+  "rootNamespace": "",
+  "references": [
+    "LighthouseExtends.TextMeshPro.Runtime",
+    "Unity.TextMeshPro.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

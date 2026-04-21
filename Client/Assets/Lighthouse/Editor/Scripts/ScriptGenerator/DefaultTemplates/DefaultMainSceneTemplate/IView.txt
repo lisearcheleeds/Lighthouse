@@ -1,0 +1,7 @@
+#OUTPUT I{{SCENE_NAME}}View.cs
+namespace {{NAMESPACE}}
+{
+    public interface I{{SCENE_NAME}}View
+    {
+    }
+}

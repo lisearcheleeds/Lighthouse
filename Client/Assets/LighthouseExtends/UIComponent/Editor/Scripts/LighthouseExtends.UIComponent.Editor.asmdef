@@ -1,0 +1,19 @@
+{
+    "name": "LighthouseExtends.UIComponent.Editor",
+    "rootNamespace": "",
+    "references": [
+        "LighthouseExtends.UIComponent.Runtime",
+        "UnityEditor.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

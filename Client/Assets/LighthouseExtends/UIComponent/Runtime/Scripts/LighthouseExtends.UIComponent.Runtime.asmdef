@@ -1,0 +1,18 @@
+{
+    "name": "LighthouseExtends.UIComponent.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "Lighthouse.Runtime",
+        "VContainer",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

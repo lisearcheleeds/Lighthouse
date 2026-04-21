@@ -1,0 +1,24 @@
+{
+    "name": "LighthouseExtends.Language.Tests.EditMode",
+    "rootNamespace": "",
+    "references": [
+        "LighthouseExtends.Language.Runtime",
+        "UniTask"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "R3.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

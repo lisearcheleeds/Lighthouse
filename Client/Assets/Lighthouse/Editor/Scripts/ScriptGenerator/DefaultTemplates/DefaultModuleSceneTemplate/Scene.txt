@@ -1,0 +1,21 @@
+#OUTPUT {{SCENE_FILE_NAME}}.cs
+using Lighthouse.Scene;
+using {{BASE_CLASS_NAMESPACE}};
+using {{GENERATED_SCENE_ID_NAMESPACE}};
+using VContainer;
+
+namespace {{NAMESPACE}}
+{
+    public class {{SCENE_FILE_NAME}} : {{BASE_CLASS}}
+    {
+        I{{SCENE_NAME}}Presenter {{SCENE_NAME_CAMEL}}Presenter;
+
+        public override ModuleSceneId ModuleSceneId => {{SCENE_ID_CLASS}}.{{SCENE_NAME}};
+
+        [Inject]
+        public void Construct(I{{SCENE_NAME}}Presenter {{SCENE_NAME_CAMEL}}Presenter)
+        {
+            this.{{SCENE_NAME_CAMEL}}Presenter = {{SCENE_NAME_CAMEL}}Presenter;
+        }
+    }
+}

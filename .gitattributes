@@ -1,0 +1,27 @@
+# Normalize line endings to LF on commit
+* text=auto eol=lf
+
+# Unity specific
+*.cs text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.asmdef text eol=lf
+*.asmref text eol=lf
+*.unity text eol=lf merge=unityyamlmerge
+*.prefab text eol=lf merge=unityyamlmerge
+*.asset text eol=lf merge=unityyamlmerge
+*.meta text eol=lf
+
+# Binary files - no conversion
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.psd binary
+*.pdf binary
+*.mp3 binary
+*.wav binary
+*.ogg binary
+*.fbx binary
+*.dll binary
+*.unitypackage binary

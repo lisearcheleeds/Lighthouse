@@ -1,0 +1,24 @@
+{
+  "name": "com.lisearcheleeds.lighthouse",
+  "version": "0.9.0",
+  "displayName": "Lighthouse",
+  "description": "A Unity scene management framework providing a structured scene transition pipeline, camera stack management, and back navigation — built on VContainer and UniTask.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Lise",
+    "url": "https://github.com/lisearcheleeds"
+  },
+  "keywords": [
+    "lighthouse",
+    "scene",
+    "transition",
+    "vcontainer",
+    "unitask",
+    "urp"
+  ],
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.10",
+    "jp.hadashikick.vcontainer": "1.17.0",
+    "com.unity.render-pipelines.universal": "17.0.0"
+  }
+}
