@@ -11,7 +11,7 @@ using VContainer;
 
 namespace LighthouseExtends.ScreenStack
 {
-    public sealed class ScreenStackManager : IScreenStackManager
+    public class ScreenStackManager : IScreenStackManager
     {
         readonly IScreenStackCanvasController screenStackCanvasController;
         readonly IScreenStackEntityFactory screenStackEntityFactory;
@@ -173,7 +173,7 @@ namespace LighthouseExtends.ScreenStack
             screenStackDataList.Add(screenStackData);
         }
 
-        async UniTask ResumeOpenScreenStacksCore(bool isPlayInAnimation)
+        protected virtual async UniTask ResumeOpenScreenStacksCore(bool isPlayInAnimation)
         {
             try
             {
@@ -230,7 +230,7 @@ namespace LighthouseExtends.ScreenStack
             }
         }
 
-        async UniTask OpenScreenStackCore(bool isPlayInAnimation)
+        protected virtual async UniTask OpenScreenStackCore(bool isPlayInAnimation)
         {
             var screenStackData = screenStackDataList?.LastOrDefault();
             if (screenStackData == null)
@@ -294,7 +294,7 @@ namespace LighthouseExtends.ScreenStack
             }
         }
 
-        async UniTask CloseScreenStackCore(IScreenStackData screenStackData)
+        protected virtual async UniTask CloseScreenStackCore(IScreenStackData screenStackData)
         {
             if (screenStackDataList == null || !screenStackDataList.Remove(screenStackData))
             {
@@ -368,7 +368,7 @@ namespace LighthouseExtends.ScreenStack
             }
         }
 
-        async UniTask CloseScreenStackCore()
+        protected virtual async UniTask CloseScreenStackCore()
         {
             var lastScreenStackData = screenStackDataList?.LastOrDefault();
             if (lastScreenStackData == null || !screenStackDataList.Remove(lastScreenStackData))
@@ -423,13 +423,13 @@ namespace LighthouseExtends.ScreenStack
             }
         }
 
-        UniTask ClearAllScreenStackCore()
+        protected virtual UniTask ClearAllScreenStackCore()
         {
             screenStackDataSceneList.Clear();
             return ClearCurrentAllScreenStackCore();
         }
 
-        async UniTask ClearCurrentAllScreenStackCore()
+        protected virtual async UniTask ClearCurrentAllScreenStackCore()
         {
             screenStackDataList?.Clear();
 
@@ -459,7 +459,7 @@ namespace LighthouseExtends.ScreenStack
             screenStackEntityList.Clear();
         }
 
-        void ResumeScreenStackFromSceneIdCore(MainSceneId mainSceneId)
+        protected virtual void ResumeScreenStackFromSceneIdCore(MainSceneId mainSceneId)
         {
             if (screenStackDataSceneList.All(x => x.SceneId != mainSceneId))
             {
@@ -480,7 +480,7 @@ namespace LighthouseExtends.ScreenStack
             screenStackDataList = lastScreenStackDataList;
         }
 
-        void ForceDisposeAll()
+        protected virtual void ForceDisposeAll()
         {
             screenStackDataList?.Clear();
             screenStackDataSceneList.Clear();
@@ -494,7 +494,7 @@ namespace LighthouseExtends.ScreenStack
             screenStackBackgroundInputBlocker.UnBlock();
         }
 
-        void SuspendScreenStackFromSceneIdCore(MainSceneId mainSceneId)
+        protected virtual void SuspendScreenStackFromSceneIdCore(MainSceneId mainSceneId)
         {
             screenStackDataSceneList.Add((mainSceneId, screenStackDataList?.ToList() ?? new List<IScreenStackData>()));
         }
