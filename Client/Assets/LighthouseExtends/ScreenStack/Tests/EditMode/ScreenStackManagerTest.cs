@@ -19,11 +19,13 @@ namespace LighthouseExtends.ScreenStack.Tests.EditMode
         IScreenStackManager CreateManager(out StubScreenStackEntityFactory factory)
         {
             factory = new StubScreenStackEntityFactory();
-            return (IScreenStackManager)new ScreenStackManager(
+            var screenStackManager = new ScreenStackManager();
+            screenStackManager.Construct(
                 new StubScreenStackCanvasController(),
                 factory,
                 new StubScreenStackBackgroundInputBlocker(),
                 new StubInputBlocker());
+            return screenStackManager;
         }
 
         // ---- open / close ----

@@ -22,6 +22,8 @@ namespace Lighthouse.Scene.SceneBase
 
         public virtual UniTask OnLoad()
         {
+            // This method may be called immediately after the scene assets are loaded, before the Inject process runs.
+            // If Injection is required, consider using OnSetup instead.
             gameObject.SetActive(false);
             return UniTask.CompletedTask;
         }
