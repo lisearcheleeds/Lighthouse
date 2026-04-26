@@ -3,18 +3,21 @@
     "rootNamespace": "",
     "references": [
         "Lighthouse.Runtime",
-        "UniTask"
+        "UniTask",
+        "UnityEngine.TestRunner"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false,
-    "optionalUnityReferences": [
-        "TestAssemblies"
+    "testPlatforms": [
+        "PlayMode"
     ]
 }
