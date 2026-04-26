@@ -9,7 +9,7 @@ namespace LighthouseExtends.Addressable
     {
         UniTask<IAssetHandle<T>> LoadAsync<T>(string address, CancellationToken ct = default) where T : UnityEngine.Object;
 
-        UniTask<IReadOnlyList<T>> LoadAssetsAsync<T>(string label, CancellationToken ct = default) where T : UnityEngine.Object;
+        UniTask<IReadOnlyList<T>> LoadByLabelAsync<T>(string label, CancellationToken ct = default) where T : UnityEngine.Object;
 
         UniTask<IReadOnlyList<T>> LoadAssetsAsync<T>(IReadOnlyList<string> addresses, CancellationToken ct = default) where T : UnityEngine.Object;
 

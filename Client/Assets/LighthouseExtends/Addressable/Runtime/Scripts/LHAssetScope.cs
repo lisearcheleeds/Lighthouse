@@ -38,7 +38,7 @@ namespace LighthouseExtends.Addressable
             return handle;
         }
 
-        public async UniTask<IReadOnlyList<T>> LoadAssetsAsync<T>(string label, CancellationToken ct = default)
+        public async UniTask<IReadOnlyList<T>> LoadByLabelAsync<T>(string label, CancellationToken ct = default)
             where T : UnityEngine.Object
         {
             if (disposed)
@@ -48,6 +48,7 @@ namespace LighthouseExtends.Addressable
 
             var handle = await manager.LoadAssetsInternalAsync<T>(label, ct);
 
+            // Scope may have been disposed while awaiting; release the handle immediately.
             if (disposed)
             {
                 handle.Dispose();
@@ -67,7 +68,7 @@ namespace LighthouseExtends.Addressable
             }
 
             var result = new T[addresses.Count];
-            var acquired = new List<LHAssetHandle<T>>(addresses.Count);
+            var acquired = new List<IAssetHandle<T>>(addresses.Count);
 
             try
             {

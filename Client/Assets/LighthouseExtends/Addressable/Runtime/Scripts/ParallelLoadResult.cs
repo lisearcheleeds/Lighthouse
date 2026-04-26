@@ -1,3 +1,5 @@
+using System;
+
 namespace LighthouseExtends.Addressable
 {
     public sealed class ParallelLoadResult
@@ -7,6 +9,11 @@ namespace LighthouseExtends.Addressable
 
         public ParallelLoadResult(IAssetHandle[] handles, bool[] succeeded)
         {
+            if (handles.Length != succeeded.Length)
+            {
+                throw new ArgumentException("handles and succeeded must have the same length.");
+            }
+
             this.handles = handles;
             this.succeeded = succeeded;
         }

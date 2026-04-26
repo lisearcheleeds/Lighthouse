@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -101,10 +102,17 @@ namespace LighthouseExtends.Addressable.Tests
             Assert.That(result.Get(spriteReq), Is.SameAs(spriteHandle));
         }
 
-        sealed class FakeHandle<T> : IAssetHandle<T> where T : Object
+        [Test]
+        public void Constructor_MismatchedLengths_ThrowsArgumentException()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                new ParallelLoadResult(new IAssetHandle[2], new bool[1]));
+        }
+
+        sealed class FakeHandle<T> : IAssetHandle<T> where T : UnityEngine.Object
         {
             public T Asset => null;
-            Object IAssetHandle.Asset => null;
+            UnityEngine.Object IAssetHandle.Asset => null;
             public void Dispose() { }
         }
     }

@@ -7,7 +7,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace LighthouseExtends.Addressable
 {
-    public sealed class LHAssetManager : ILHAssetManager, IDisposable
+    public sealed class LHAssetManager : ILHAssetManager
     {
         class Entry
         {
@@ -46,6 +46,8 @@ namespace LighthouseExtends.Addressable
 
             try
             {
+                // ct cancels this await but not the underlying Addressables load;
+                // other callers may share the same handle.
                 await entry.Handle.ToUniTask(cancellationToken: ct);
                 return new LHAssetHandle<T>((T)entry.Handle.Result, () => Release(address));
             }

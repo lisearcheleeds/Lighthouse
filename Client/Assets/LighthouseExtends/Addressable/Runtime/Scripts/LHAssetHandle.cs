@@ -2,7 +2,7 @@ using System;
 
 namespace LighthouseExtends.Addressable
 {
-    public sealed class LHAssetHandle<T> : IAssetHandle<T> where T : UnityEngine.Object
+    internal sealed class LHAssetHandle<T> : IAssetHandle<T> where T : UnityEngine.Object
     {
         readonly Action onDispose;
 
@@ -12,7 +12,7 @@ namespace LighthouseExtends.Addressable
 
         UnityEngine.Object IAssetHandle.Asset => Asset;
 
-        public LHAssetHandle(T asset, Action onDispose)
+        internal LHAssetHandle(T asset, Action onDispose)
         {
             Asset = asset;
             this.onDispose = onDispose;
@@ -26,7 +26,7 @@ namespace LighthouseExtends.Addressable
             }
 
             disposed = true;
-            onDispose?.Invoke();
+            onDispose();
         }
     }
 }

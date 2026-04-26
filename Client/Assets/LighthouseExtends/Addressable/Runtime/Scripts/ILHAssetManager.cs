@@ -1,6 +1,8 @@
+using System;
+
 namespace LighthouseExtends.Addressable
 {
-    public interface ILHAssetManager
+    public interface ILHAssetManager : IDisposable
     {
         ILHAssetScope CreateScope();
     }
