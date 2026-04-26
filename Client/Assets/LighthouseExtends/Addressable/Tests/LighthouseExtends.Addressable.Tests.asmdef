@@ -1,10 +1,13 @@
 {
-    "name": "LighthouseExtends.Animation.Tests.PlayMode",
+    "name": "LighthouseExtends.Addressable.Tests",
     "rootNamespace": "",
     "references": [
-        "LighthouseExtends.Animation.Runtime",
+        "LighthouseExtends.Addressable.Runtime",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
         "UniTask",
-        "UnityEngine.TestRunner"
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -14,10 +17,12 @@
         "nunit.framework.dll"
     ],
     "autoReferenced": false,
-    "defineConstraints": [],
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
     "versionDefines": [],
     "noEngineReferences": false,
     "testPlatforms": [
-        "PlayMode"
+        "EditMode"
     ]
 }
