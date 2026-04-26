@@ -5,6 +5,6 @@ namespace LighthouseExtends.ScreenStack
 {
     public interface IScreenStackInstanceFactory
     {
-        UniTask<TScreenStack> CreateScreenStackInstance<TScreenStack>(string screenStackAddress, CancellationToken ct);
+        UniTask<TScreenStack> CreateScreenStackInstance<TScreenStack>(string screenStackAddress, IScreenStackData data, CancellationToken ct);
     }
 }
