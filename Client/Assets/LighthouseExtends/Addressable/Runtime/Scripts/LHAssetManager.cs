@@ -2,14 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace LighthouseExtends.Addressable
 {
-    /// <summary>
-    /// Implements ILHAssetManager. Shares a single Addressables handle per address with ref-counting;
-    /// Addressables.Release is called only when all holders have released.
-    /// </summary>
     public sealed class LHAssetManager : ILHAssetManager, IDisposable
     {
         class Entry
@@ -18,17 +15,9 @@ namespace LighthouseExtends.Addressable
             public int RefCount { get; set; }
         }
 
-        readonly IAddressablesLoader loader;
         readonly Dictionary<string, Entry> entries = new();
 
         bool disposed;
-
-        public LHAssetManager() : this(new DefaultAddressablesLoader()) { }
-
-        internal LHAssetManager(IAddressablesLoader loader)
-        {
-            this.loader = loader;
-        }
 
         public ILHAssetScope CreateScope()
         {
@@ -47,18 +36,16 @@ namespace LighthouseExtends.Addressable
             {
                 entry = new Entry
                 {
-                    Handle = loader.LoadAssetAsync<T>(address),
+                    Handle = Addressables.LoadAssetAsync<T>(address),
                     RefCount = 0,
                 };
                 entries[address] = entry;
             }
 
-            // Increment before await so concurrent calls to the same address accumulate RefCount correctly.
             entry.RefCount++;
 
             try
             {
-                // ct cancels this await but not the underlying Addressables load; other callers may share the same handle.
                 await entry.Handle.ToUniTask(cancellationToken: ct);
                 return new LHAssetHandle<T>((T)entry.Handle.Result, () => Release(address));
             }
@@ -81,7 +68,7 @@ namespace LighthouseExtends.Addressable
             {
                 entry = new Entry
                 {
-                    Handle = loader.LoadAssetsAsync<T>(label, null),
+                    Handle = Addressables.LoadAssetsAsync<T>(label, null),
                     RefCount = 0,
                 };
                 entries[label] = entry;
@@ -112,7 +99,7 @@ namespace LighthouseExtends.Addressable
 
             if (entry.RefCount <= 0)
             {
-                loader.Release(entry.Handle);
+                Addressables.Release(entry.Handle);
                 entries.Remove(address);
             }
         }
@@ -128,7 +115,7 @@ namespace LighthouseExtends.Addressable
 
             foreach (var entry in entries.Values)
             {
-                loader.Release(entry.Handle);
+                Addressables.Release(entry.Handle);
             }
 
             entries.Clear();

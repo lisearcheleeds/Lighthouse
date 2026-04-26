@@ -3,13 +3,12 @@
     "rootNamespace": "",
     "references": [
         "LighthouseExtends.Addressable.Runtime",
-        "Unity.Addressables",
-        "Unity.ResourceManager",
-        "UniTask",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
@@ -17,9 +16,7 @@
         "nunit.framework.dll"
     ],
     "autoReferenced": false,
-    "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
-    ],
+    "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false,
     "testPlatforms": [

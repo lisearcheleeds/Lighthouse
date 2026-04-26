@@ -5,7 +5,7 @@ namespace LighthouseExtends.Addressable
         readonly IAssetHandle[] handles;
         readonly bool[] succeeded;
 
-        internal ParallelLoadResult(IAssetHandle[] handles, bool[] succeeded)
+        public ParallelLoadResult(IAssetHandle[] handles, bool[] succeeded)
         {
             this.handles = handles;
             this.succeeded = succeeded;
