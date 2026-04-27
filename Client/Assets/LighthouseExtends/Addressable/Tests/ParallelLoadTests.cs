@@ -113,7 +113,8 @@ namespace LighthouseExtends.Addressable.Tests
         {
             public T Asset => null;
             UnityEngine.Object IAssetHandle.Asset => null;
-            public void Dispose() { }
+            public bool IsDisposed { get; private set; }
+            public void Dispose() => IsDisposed = true;
         }
     }
 }

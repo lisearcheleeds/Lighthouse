@@ -12,6 +12,8 @@ namespace LighthouseExtends.Addressable
 
         UnityEngine.Object IAssetHandle.Asset => Asset;
 
+        public bool IsDisposed => disposed;
+
         internal AssetHandle(T asset, Action onDispose)
         {
             Asset = asset;
