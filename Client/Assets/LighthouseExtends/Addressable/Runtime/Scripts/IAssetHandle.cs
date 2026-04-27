@@ -5,6 +5,7 @@ namespace LighthouseExtends.Addressable
     public interface IAssetHandle : IDisposable
     {
         UnityEngine.Object Asset { get; }
+        bool IsDisposed { get; }
     }
 
     public interface IAssetHandle<out T> : IAssetHandle where T : UnityEngine.Object

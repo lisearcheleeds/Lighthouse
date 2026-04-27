@@ -49,6 +49,11 @@ namespace LighthouseExtends.Addressable
                 // ct cancels this await but not the underlying Addressables load;
                 // other callers may share the same handle.
                 await entry.Handle.ToUniTask(cancellationToken: ct);
+                if (entry.Handle.Status != AsyncOperationStatus.Succeeded)
+                {
+                    throw entry.Handle.OperationException
+                        ?? new InvalidOperationException($"Addressables load failed for '{address}'.");
+                }
                 return new AssetHandle<T>((T)entry.Handle.Result, () => Release(address));
             }
             catch
@@ -83,6 +88,11 @@ namespace LighthouseExtends.Addressable
                 // ct cancels this await but not the underlying Addressables load;
                 // other callers may share the same handle.
                 await entry.Handle.ToUniTask(cancellationToken: ct);
+                if (entry.Handle.Status != AsyncOperationStatus.Succeeded)
+                {
+                    throw entry.Handle.OperationException
+                        ?? new InvalidOperationException($"Addressables load failed for '{label}'.");
+                }
                 return new AssetListHandle<T>((IList<T>)entry.Handle.Result, () => Release(label));
             }
             catch

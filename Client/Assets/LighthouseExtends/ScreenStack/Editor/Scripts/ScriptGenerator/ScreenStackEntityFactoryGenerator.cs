@@ -60,7 +60,7 @@ namespace LighthouseExtends.ScreenStack.Editor.ScriptGenerator
                 .ToArray();
 
             var dataTypes = allTypes
-                .Where(t => t.IsClass && !t.IsAbstract && screenStackDataInterface.IsAssignableFrom(t))
+                .Where(t => t.IsClass && !t.IsAbstract && (t.IsPublic || t.IsNestedPublic) && screenStackDataInterface.IsAssignableFrom(t))
                 .ToArray();
 
             if (dataTypes.Length == 0)
