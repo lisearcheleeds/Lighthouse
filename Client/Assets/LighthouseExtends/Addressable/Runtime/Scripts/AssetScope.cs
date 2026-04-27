@@ -5,24 +5,23 @@ using Cysharp.Threading.Tasks;
 
 namespace LighthouseExtends.Addressable
 {
-    internal sealed class LHAssetScope : ILHAssetScope
+    internal sealed class AssetScope : IAssetScope
     {
-        readonly LHAssetManager manager;
+        readonly AssetManager manager;
         readonly List<IDisposable> handles = new();
 
         bool disposed;
 
-        internal LHAssetScope(LHAssetManager manager)
+        internal AssetScope(AssetManager manager)
         {
             this.manager = manager;
         }
 
-        public async UniTask<IAssetHandle<T>> LoadAsync<T>(string address, CancellationToken ct = default)
-            where T : UnityEngine.Object
+        public async UniTask<IAssetHandle<T>> LoadAsync<T>(string address, CancellationToken ct = default) where T : UnityEngine.Object
         {
             if (disposed)
             {
-                throw new ObjectDisposedException(nameof(LHAssetScope));
+                throw new ObjectDisposedException(nameof(AssetScope));
             }
 
             var handle = await manager.LoadInternalAsync<T>(address, ct);
@@ -31,43 +30,20 @@ namespace LighthouseExtends.Addressable
             if (disposed)
             {
                 handle.Dispose();
-                throw new ObjectDisposedException(nameof(LHAssetScope));
+                throw new ObjectDisposedException(nameof(AssetScope));
             }
 
             handles.Add(handle);
             return handle;
         }
 
-        public async UniTask<IReadOnlyList<T>> LoadByLabelAsync<T>(string label, CancellationToken ct = default)
-            where T : UnityEngine.Object
+        public async UniTask<IReadOnlyList<IAssetHandle<T>>> LoadAsync<T>(IReadOnlyList<string> addresses, CancellationToken ct = default) where T : UnityEngine.Object
         {
             if (disposed)
             {
-                throw new ObjectDisposedException(nameof(LHAssetScope));
+                throw new ObjectDisposedException(nameof(AssetScope));
             }
 
-            var handle = await manager.LoadAssetsInternalAsync<T>(label, ct);
-
-            // Scope may have been disposed while awaiting; release the handle immediately.
-            if (disposed)
-            {
-                handle.Dispose();
-                throw new ObjectDisposedException(nameof(LHAssetScope));
-            }
-
-            handles.Add(handle);
-            return handle.Assets;
-        }
-
-        public async UniTask<IReadOnlyList<T>> LoadAssetsAsync<T>(IReadOnlyList<string> addresses, CancellationToken ct = default)
-            where T : UnityEngine.Object
-        {
-            if (disposed)
-            {
-                throw new ObjectDisposedException(nameof(LHAssetScope));
-            }
-
-            var result = new T[addresses.Count];
             var acquired = new List<IAssetHandle<T>>(addresses.Count);
 
             try
@@ -79,10 +55,9 @@ namespace LighthouseExtends.Addressable
                     if (disposed)
                     {
                         handle.Dispose();
-                        throw new ObjectDisposedException(nameof(LHAssetScope));
+                        throw new ObjectDisposedException(nameof(AssetScope));
                     }
 
-                    result[i] = handle.Asset;
                     acquired.Add(handle);
                 }
             }
@@ -100,14 +75,34 @@ namespace LighthouseExtends.Addressable
                 handles.Add(h);
             }
 
-            return result;
+            return acquired;
         }
 
-        public async UniTask<ParallelLoadResult> TryLoadAssetsAsync(ParallelLoadData data, CancellationToken ct = default)
+        public async UniTask<IReadOnlyList<T>> LoadByLabelAsync<T>(string label, CancellationToken ct = default) where T : UnityEngine.Object
         {
             if (disposed)
             {
-                throw new ObjectDisposedException(nameof(LHAssetScope));
+                throw new ObjectDisposedException(nameof(AssetScope));
+            }
+
+            var handle = await manager.LoadAssetsInternalAsync<T>(label, ct);
+
+            // Scope may have been disposed while awaiting; release the handle immediately.
+            if (disposed)
+            {
+                handle.Dispose();
+                throw new ObjectDisposedException(nameof(AssetScope));
+            }
+
+            handles.Add(handle);
+            return handle.Assets;
+        }
+
+        public async UniTask<ParallelLoadResult> TryLoadAsync(ParallelLoadData data, CancellationToken ct = default)
+        {
+            if (disposed)
+            {
+                throw new ObjectDisposedException(nameof(AssetScope));
             }
 
             var count = data.loaders.Count;
@@ -140,7 +135,7 @@ namespace LighthouseExtends.Addressable
                 {
                     h?.Dispose();
                 }
-                throw new ObjectDisposedException(nameof(LHAssetScope));
+                throw new ObjectDisposedException(nameof(AssetScope));
             }
 
             foreach (var h in loaded)
