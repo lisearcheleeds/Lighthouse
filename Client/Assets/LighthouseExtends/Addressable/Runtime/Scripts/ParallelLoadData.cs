@@ -7,7 +7,7 @@ namespace LighthouseExtends.Addressable
 {
     public sealed class ParallelLoadData
     {
-        internal readonly List<Func<LHAssetManager, CancellationToken, UniTask<IAssetHandle>>> loaders = new();
+        internal readonly List<Func<AssetManager, CancellationToken, UniTask<IAssetHandle>>> loaders = new();
 
         public AssetRequest<T> Add<T>(string address) where T : UnityEngine.Object
         {

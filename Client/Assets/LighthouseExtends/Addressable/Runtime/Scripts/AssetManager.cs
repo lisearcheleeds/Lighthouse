@@ -7,7 +7,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace LighthouseExtends.Addressable
 {
-    public sealed class LHAssetManager : ILHAssetManager
+    public sealed class AssetManager : IAssetManager
     {
         class Entry
         {
@@ -19,17 +19,17 @@ namespace LighthouseExtends.Addressable
 
         bool disposed;
 
-        public ILHAssetScope CreateScope()
+        public IAssetScope CreateScope()
         {
-            return new LHAssetScope(this);
+            return new AssetScope(this);
         }
 
-        internal async UniTask<LHAssetHandle<T>> LoadInternalAsync<T>(string address, CancellationToken ct)
+        internal async UniTask<AssetHandle<T>> LoadInternalAsync<T>(string address, CancellationToken ct)
             where T : UnityEngine.Object
         {
             if (disposed)
             {
-                throw new ObjectDisposedException(nameof(LHAssetManager));
+                throw new ObjectDisposedException(nameof(AssetManager));
             }
 
             if (!entries.TryGetValue(address, out var entry))
@@ -49,7 +49,7 @@ namespace LighthouseExtends.Addressable
                 // ct cancels this await but not the underlying Addressables load;
                 // other callers may share the same handle.
                 await entry.Handle.ToUniTask(cancellationToken: ct);
-                return new LHAssetHandle<T>((T)entry.Handle.Result, () => Release(address));
+                return new AssetHandle<T>((T)entry.Handle.Result, () => Release(address));
             }
             catch
             {
@@ -58,12 +58,12 @@ namespace LighthouseExtends.Addressable
             }
         }
 
-        internal async UniTask<LHAssetListHandle<T>> LoadAssetsInternalAsync<T>(string label, CancellationToken ct)
+        internal async UniTask<AssetListHandle<T>> LoadAssetsInternalAsync<T>(string label, CancellationToken ct)
             where T : UnityEngine.Object
         {
             if (disposed)
             {
-                throw new ObjectDisposedException(nameof(LHAssetManager));
+                throw new ObjectDisposedException(nameof(AssetManager));
             }
 
             if (!entries.TryGetValue(label, out var entry))
@@ -80,8 +80,10 @@ namespace LighthouseExtends.Addressable
 
             try
             {
+                // ct cancels this await but not the underlying Addressables load;
+                // other callers may share the same handle.
                 await entry.Handle.ToUniTask(cancellationToken: ct);
-                return new LHAssetListHandle<T>((IList<T>)entry.Handle.Result, () => Release(label));
+                return new AssetListHandle<T>((IList<T>)entry.Handle.Result, () => Release(label));
             }
             catch
             {
