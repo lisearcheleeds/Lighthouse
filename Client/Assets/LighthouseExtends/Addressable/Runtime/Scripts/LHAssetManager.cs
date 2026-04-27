@@ -80,6 +80,8 @@ namespace LighthouseExtends.Addressable
 
             try
             {
+                // ct cancels this await but not the underlying Addressables load;
+                // other callers may share the same handle.
                 await entry.Handle.ToUniTask(cancellationToken: ct);
                 return new LHAssetListHandle<T>((IList<T>)entry.Handle.Result, () => Release(label));
             }
