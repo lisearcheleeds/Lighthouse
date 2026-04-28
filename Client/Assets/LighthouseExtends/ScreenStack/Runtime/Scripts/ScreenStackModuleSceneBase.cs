@@ -11,7 +11,7 @@ namespace LighthouseExtends.ScreenStack
         IScreenStackManager screenStackManager;
 
         [Inject]
-        public void Constructor(IScreenStackManager screenStackManager)
+        public void Construct(IScreenStackManager screenStackManager)
         {
             this.screenStackManager = screenStackManager;
         }
