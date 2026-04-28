@@ -58,7 +58,8 @@ https://lisearcheleeds.github.io/LighthouseSample/
     "com.lisearcheleeds.lighthouse-extends.texttable":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextTable#v0.9.0",
     "com.lisearcheleeds.lighthouse-extends.textmeshpro": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextMeshPro#v0.9.0",
     "com.lisearcheleeds.lighthouse-extends.uicomponent": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/UIComponent#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.screenstack": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/ScreenStack#v0.9.0"
+    "com.lisearcheleeds.lighthouse-extends.screenstack": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/ScreenStack#v0.9.0",
+    "com.lisearcheleeds.lighthouse-extends.addressable": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Addressable#v0.9.0"
   }
 }
 ```
@@ -114,6 +115,7 @@ https://lisearcheleeds.github.io/LighthouseSample/
 
 | モジュール | 説明 |
 |---|---|
+| **Addressable** | `AssetManager` — 参照カウント方式の Addressables ラッパー。スコープ単位のアセットライフタイム管理と並列ロードをサポートします。 |
 | **Animation** | `LHTransitionAnimator` / `LHSceneTransitionAnimator` — `PlayableGraph` 経由の In/Out クリップ再生。方向ごとの開始ディレイと排他制御をサポート。 |
 | **Language** | `LanguageService` — リアクティブな言語切り替え。`CurrentLanguage` 更新前に登録済みハンドラーが並列で呼び出されます。 |
 | **Font** | `FontService` — `ILanguageService` を購読し、言語変更のたびに `LanguageFontSettings` から `CurrentFont`（TMP_FontAsset）を更新します。 |
@@ -136,6 +138,7 @@ LighthouseArchitecture/
 │       └── *.cs                    # SceneManager、コンテキスト、データモデル
 │
 └── LighthouseExtends/              # オプションのランタイム & エディターモジュール
+    ├── Addressable/
     ├── Animation/
     ├── Font/
     ├── InputLayer/

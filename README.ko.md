@@ -57,7 +57,8 @@ https://lisearcheleeds.github.io/LighthouseSample/
     "com.lisearcheleeds.lighthouse-extends.texttable":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextTable#v0.9.0",
     "com.lisearcheleeds.lighthouse-extends.textmeshpro": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextMeshPro#v0.9.0",
     "com.lisearcheleeds.lighthouse-extends.uicomponent": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/UIComponent#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.screenstack": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/ScreenStack#v0.9.0"
+    "com.lisearcheleeds.lighthouse-extends.screenstack": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/ScreenStack#v0.9.0",
+    "com.lisearcheleeds.lighthouse-extends.addressable": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Addressable#v0.9.0"
   }
 }
 ```
@@ -113,6 +114,7 @@ https://lisearcheleeds.github.io/LighthouseSample/
 
 | 모듈 | 설명 |
 |---|---|
+| **Addressable** | `AssetManager` — 참조 카운트 방식의 Addressables 래퍼. 스코프 단위의 에셋 수명 관리와 병렬 로드를 지원합니다. |
 | **Animation** | `LHTransitionAnimator` / `LHSceneTransitionAnimator` — `PlayableGraph`를 통한 In/Out 클립 재생. 방향별 시작 딜레이와 상호 배타 지원. |
 | **Language** | `LanguageService` — 반응형 언어 전환. `CurrentLanguage` 업데이트 전에 등록된 핸들러가 병렬로 호출됩니다. |
 | **Font** | `FontService` — `ILanguageService`를 구독하여 언어 변경 시마다 `LanguageFontSettings`에서 `CurrentFont`(TMP_FontAsset)를 업데이트합니다. |
@@ -135,6 +137,7 @@ LighthouseArchitecture/
 │       └── *.cs                    # SceneManager, 컨텍스트, 데이터 모델
 │
 └── LighthouseExtends/              # 선택적 런타임 & 에디터 모듈
+    ├── Addressable/
     ├── Animation/
     ├── Font/
     ├── InputLayer/
