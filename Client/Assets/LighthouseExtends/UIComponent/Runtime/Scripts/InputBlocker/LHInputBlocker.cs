@@ -20,7 +20,7 @@ namespace LighthouseExtends.UIComponent.InputBlocker
         Dictionary<Type, int> systemBlockCount = new();
 
         [Inject]
-        public void Constructor(ISceneCameraManager sceneCameraManager)
+        public void Construct(ISceneCameraManager sceneCameraManager)
         {
             blockerCanvas.worldCamera = sceneCameraManager.UICamera.GetCamera();
         }
