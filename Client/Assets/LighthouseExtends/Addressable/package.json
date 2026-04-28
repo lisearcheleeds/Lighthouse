@@ -1,6 +1,6 @@
 {
   "name": "com.lisearcheleeds.lighthouse-extends.addressable",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "displayName": "Lighthouse Extends - Addressable",
   "description": "Ref-counted Addressables wrapper with scoped asset management and parallel loading support.",
   "unity": "6000.0",

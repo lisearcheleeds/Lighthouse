@@ -57,7 +57,8 @@ Open `Packages/manifest.json` and add the packages you need:
     "com.lisearcheleeds.lighthouse-extends.texttable":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextTable#v0.9.0",
     "com.lisearcheleeds.lighthouse-extends.textmeshpro": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextMeshPro#v0.9.0",
     "com.lisearcheleeds.lighthouse-extends.uicomponent": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/UIComponent#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.screenstack": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/ScreenStack#v0.9.0"
+    "com.lisearcheleeds.lighthouse-extends.screenstack": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/ScreenStack#v0.9.0",
+    "com.lisearcheleeds.lighthouse-extends.addressable": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Addressable#v0.9.0"
   }
 }
 ```
@@ -113,6 +114,7 @@ Download the latest `.unitypackage` from [Releases](https://github.com/lisearche
 
 | Module | Description |
 |---|---|
+| **Addressable** | `AssetManager` — Ref-counted Addressables wrapper with scoped asset lifetime management and parallel loading support. |
 | **Animation** | `LHTransitionAnimator` / `LHSceneTransitionAnimator` — In/Out clip playback via `PlayableGraph`, with per-direction start delay and mutual exclusion. |
 | **Language** | `LanguageService` — Reactive language switching; registered handlers are called in parallel before `CurrentLanguage` updates. |
 | **Font** | `FontService` — Subscribes to `ILanguageService` and updates `CurrentFont` (TMP_FontAsset) from `LanguageFontSettings` on each language change. |
@@ -135,6 +137,7 @@ LighthouseArchitecture/
 │       └── *.cs                    # SceneManager, context, data models
 │
 └── LighthouseExtends/              # Optional runtime & editor modules
+    ├── Addressable/
     ├── Animation/
     ├── Font/
     ├── InputLayer/

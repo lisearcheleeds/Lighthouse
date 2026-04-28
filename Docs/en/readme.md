@@ -19,6 +19,7 @@
   - [Suspend / Resume](#suspend--resume)
   - [ScreenStackModuleProxy](#screenstackmoduleproxy)
   - [Code Generation](#code-generation)
+- [Addressable](#addressable)
 - [Animation](#animation)
 - [Language](#language)
 - [Font](#font)
@@ -336,6 +337,96 @@ Boilerplate code for dialogs can be automatically generated from the editor menu
 
 - **ScreenStackDialogScriptGeneratorWindow**: Generates View / Data classes for dialogs from templates
 - **ScreenStackEntityFactoryGenerator**: Automatically generates switch branches for `IScreenStackEntityFactory`
+
+---
+
+## Addressable
+
+**Package:** `com.lisearcheleeds.lighthouse-extends.addressable`  
+**Dependencies:** UniTask · Unity Addressables
+
+A ref-counted Addressables wrapper with scoped asset lifetime management and parallel loading support. Assets are tracked per address; multiple scopes sharing the same address reuse the underlying `AsyncOperationHandle`, and `Addressables.Release` is called only when the last handle is disposed.
+
+### IAssetManager
+
+Register `AssetManager` with DI and inject `IAssetManager`. Call `CreateScope()` to obtain an `IAssetScope` for loading assets.
+
+```csharp
+// VContainer example
+builder.Register<AssetManager>(Lifetime.Singleton).As<IAssetManager>();
+```
+
+### IAssetScope
+
+Create one scope per scene (or per logical loading context). Disposing the scope releases all handles it holds at once.
+
+```csharp
+IAssetScope scope = assetManager.CreateScope();
+
+// Load a single asset by address
+IAssetHandle<Sprite> handle = await scope.LoadAsync<Sprite>("ui/icon_home", ct);
+icon.sprite = handle.Asset;
+
+// Load multiple assets by address list (sequential)
+IReadOnlyList<IAssetHandle<Sprite>> handles =
+    await scope.LoadAsync<Sprite>(new[] { "ui/icon_a", "ui/icon_b" }, ct);
+
+// Load all assets matching a label
+IReadOnlyList<AudioClip> clips = await scope.LoadByLabelAsync<AudioClip>("bgm", ct);
+
+// Release all handles acquired by this scope
+scope.Dispose();
+```
+
+| Method | Description |
+|---|---|
+| `LoadAsync<T>(string address, ct)` | Loads a single asset by address. Returns `IAssetHandle<T>`. |
+| `LoadAsync<T>(IReadOnlyList<string> addresses, ct)` | Loads multiple assets sequentially. Returns `IReadOnlyList<IAssetHandle<T>>`. |
+| `LoadByLabelAsync<T>(string label, ct)` | Loads all assets matching a label. Returns `IReadOnlyList<T>`. |
+| `TryLoadAsync(ParallelLoadData data, ct)` | Loads multiple heterogeneous assets in parallel. Partial failures are tolerated. Returns `ParallelLoadResult`. |
+| `Dispose()` | Releases all handles acquired through this scope. |
+
+### IAssetHandle\<T\>
+
+| Member | Description |
+|---|---|
+| `Asset` | The loaded `UnityEngine.Object` |
+| `IsDisposed` | `true` after `Dispose()` is called |
+| `Dispose()` | Decrements the ref count; `Addressables.Release` fires when the count reaches 0 |
+
+Individual handles can be disposed early (before scope disposal) to free memory sooner.
+
+### Parallel Loading
+
+`TryLoadAsync` starts all loads simultaneously and collects individual results. Unlike a standard `WhenAll`, a failure in one request does not cancel the others.
+
+```csharp
+var data = new ParallelLoadData();
+var iconReq  = data.Add<Sprite>("ui/icon_home");
+var bgReq    = data.Add<Texture2D>("ui/background");
+var audioReq = data.Add<AudioClip>("audio/bgm_home");
+
+ParallelLoadResult result = await scope.TryLoadAsync(data, ct);
+
+if (result.IsSuccess(iconReq))
+    icon.sprite = result.Get(iconReq).Asset;
+
+if (result.IsSuccess(bgReq))
+    background.texture = result.Get(bgReq).Asset;
+
+if (!result.IsSuccess(audioReq))
+    Debug.LogWarning("BGM failed to load");
+```
+
+| Member | Description |
+|---|---|
+| `ParallelLoadData.Add<T>(string address)` | Registers a load request. Returns an `AssetRequest<T>` token. |
+| `ParallelLoadResult.IsSuccess<T>(request)` | Whether the request succeeded. |
+| `ParallelLoadResult.Get<T>(request)` | Returns the `IAssetHandle<T>`, or `null` if the request failed. |
+
+### Cancellation Behaviour
+
+Passing a `CancellationToken` cancels the **await** but does not cancel the underlying Addressables operation — because that handle may be shared with other callers. If the token fires, an `OperationCanceledException` is thrown and the reference count for that address is decremented. The handle is not added to the scope.
 
 ---
 
