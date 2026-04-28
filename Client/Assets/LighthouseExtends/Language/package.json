@@ -1,6 +1,6 @@
 {
   "name": "com.lisearcheleeds.lighthouse-extends.language",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "displayName": "Lighthouse Extends - Language",
   "description": "Reactive language switching service. Registered handlers are called in parallel before CurrentLanguage updates.",
   "unity": "6000.0",

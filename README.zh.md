@@ -4,8 +4,7 @@
 
 基于 [VContainer](https://github.com/hadashiA/VContainer) 和 [UniTask](https://github.com/Cysharp/UniTask) 构建的 Unity 应用框架，提供结构化的场景管理系统、对话框栈以及可扩展的运行时模块。
 
-当前版本为 0.9.0 预发布版。
-1.0.0 版本预计于 4 月 29 日发布。
+当前版本为 **1.0.0**。
 
 <img width="1677" height="938" alt="lighthouse" src="https://github.com/user-attachments/assets/f0e9c5de-f858-4e0d-be63-7e57a4d6558c" />
 
@@ -48,17 +47,17 @@ https://lisearcheleeds.github.io/LighthouseSample/
 ```json
 {
   "dependencies": {
-    "com.lisearcheleeds.lighthouse": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/Lighthouse#v0.9.0",
+    "com.lisearcheleeds.lighthouse": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/Lighthouse#v1.0.0",
 
-    "com.lisearcheleeds.lighthouse-extends.animation":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Animation#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.inputlayer":  "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/InputLayer#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.language":    "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Language#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.font":        "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Font#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.texttable":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextTable#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.textmeshpro": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextMeshPro#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.uicomponent": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/UIComponent#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.screenstack": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/ScreenStack#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.addressable": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Addressable#v0.9.0"
+    "com.lisearcheleeds.lighthouse-extends.animation":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Animation#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.inputlayer":  "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/InputLayer#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.language":    "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Language#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.font":        "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Font#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.texttable":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextTable#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.textmeshpro": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextMeshPro#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.uicomponent": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/UIComponent#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.screenstack": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/ScreenStack#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.addressable": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Addressable#v1.0.0"
   }
 }
 ```

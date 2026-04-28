@@ -1,6 +1,6 @@
 {
   "name": "com.lisearcheleeds.lighthouse",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "displayName": "Lighthouse",
   "description": "A Unity scene management framework providing a structured scene transition pipeline, camera stack management, and back navigation — built on VContainer and UniTask.",
   "unity": "6000.0",

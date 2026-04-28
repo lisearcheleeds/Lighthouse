@@ -1,6 +1,6 @@
 {
   "name": "com.lisearcheleeds.lighthouse-extends.uicomponent",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "displayName": "Lighthouse Extends - UIComponent",
   "description": "UI component utilities for Lighthouse-based projects.",
   "unity": "6000.0",
@@ -14,7 +14,7 @@
     "vcontainer"
   ],
   "dependencies": {
-    "com.lisearcheleeds.lighthouse": "0.1.0",
+    "com.lisearcheleeds.lighthouse": "1.0.0",
     "jp.hadashikick.vcontainer": "1.17.0"
   }
 }

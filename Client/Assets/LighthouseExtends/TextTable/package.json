@@ -1,6 +1,6 @@
 {
   "name": "com.lisearcheleeds.lighthouse-extends.texttable",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "displayName": "Lighthouse Extends - TextTable",
   "description": "Loads per-language TSV files and resolves {param} placeholders at runtime. Includes an editor window for editing keys and translations.",
   "unity": "6000.0",
@@ -16,7 +16,7 @@
     "i18n"
   ],
   "dependencies": {
-    "com.lisearcheleeds.lighthouse-extends.language": "0.1.0",
+    "com.lisearcheleeds.lighthouse-extends.language": "1.0.0",
     "com.cysharp.r3": "1.3.0",
     "com.cysharp.unitask": "2.5.10",
     "jp.hadashikick.vcontainer": "1.17.0"

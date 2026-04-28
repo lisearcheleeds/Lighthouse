@@ -1,6 +1,6 @@
 {
   "name": "com.lisearcheleeds.lighthouse-extends.font",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "displayName": "Lighthouse Extends - Font",
   "description": "Subscribes to ILanguageService and updates the current TMP_FontAsset from LanguageFontSettings on each language change.",
   "unity": "6000.0",
@@ -15,7 +15,7 @@
     "localization"
   ],
   "dependencies": {
-    "com.lisearcheleeds.lighthouse-extends.language": "0.1.0",
+    "com.lisearcheleeds.lighthouse-extends.language": "1.0.0",
     "com.cysharp.r3": "1.3.0",
     "com.cysharp.unitask": "2.5.10",
     "jp.hadashikick.vcontainer": "1.17.0"
