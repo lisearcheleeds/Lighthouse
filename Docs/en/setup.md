@@ -4,8 +4,7 @@ After adding the packages to your Unity project, follow the steps below to compl
 
 ## Starter Kit (UnityPackage)
 
-A UnityPackage is available that lets you skip most of the setup steps.  
-[TODO: UnityPackage URL]
+A UnityPackage that lets you skip most of the setup steps is available from [Releases](https://github.com/lisearcheleeds/Lighthouse/releases).
 
 ### Steps you can skip
 

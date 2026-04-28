@@ -121,18 +121,125 @@ public override async UniTask LoadSceneState(TransitionDirectionType dir, Cancel
 
 ### Product-Wide Common Base Class (Recommended)
 
-It is recommended to create an intermediate base class that consolidates processing common to all scenes, such as animation and input layer handling.
+Create an intermediate base class that consolidates animation, input layer push/pop, and asset scope management common to all scenes. Individual scenes inherit from this class instead of `CanvasMainSceneBase` directly.
 
 ```csharp
-// Intermediate base class consolidating product-wide common processing
-public abstract class YourProductCanvasMainSceneBase<TTransitionData> : CanvasMainSceneBase<TTransitionData>
+[RequireComponent(typeof(LHSceneTransitionAnimatorManager))]
+public abstract class YourProductCanvasMainSceneBase<TTransitionData>
+    : CanvasMainSceneBase<TTransitionData>
     where TTransitionData : TransitionDataBase
 {
-    // Add common processing such as animation and input layer here
+    [SerializeField] LHSceneTransitionAnimatorManager sceneTransitionAnimatorManager;
+
+    IInputLayerController inputLayerController;
+    IInputLayer currentInputLayer;
+    IAssetManager assetManager;
+    InputActions inputActions;
+
+    protected IAssetScope AssetScope { get; private set; }
+
+    [Inject]
+    public void Construct(
+        IInputLayerController inputLayerController,
+        InputActions inputActions,
+        IAssetManager assetManager)
+    {
+        this.inputLayerController = inputLayerController;
+        this.inputActions = inputActions;
+        this.assetManager = assetManager;
+    }
+
+    // Override to return the input layer for this scene (return null for no input layer)
+    protected virtual IInputLayer CreateInputLayer(InputActions inputActions) => null;
+
+    protected virtual InputActionMap GetInputLayerActionMap(InputActions inputActions)
+        => inputActions.Scene;
+
+    protected override UniTask OnSetup()
+    {
+        AssetScope = assetManager.CreateScope();
+        return base.OnSetup();
+    }
+
+    public override async UniTask OnUnload()
+    {
+        await base.OnUnload();
+        AssetScope?.Dispose();
+        AssetScope = null;
+    }
+
+    protected override async UniTask OnEnter(ISceneTransitionContext context, CancellationToken ct)
+    {
+        var layer = CreateInputLayer(inputActions);
+        var map   = GetInputLayerActionMap(inputActions);
+        if (layer != null && map != null)
+        {
+            currentInputLayer = layer;
+            inputLayerController.PushLayer(currentInputLayer, map);
+        }
+        await base.OnEnter(context, ct);
+    }
+
+    protected override async UniTask OnLeave(ISceneTransitionContext context, CancellationToken ct)
+    {
+        await base.OnLeave(context, ct);
+        if (currentInputLayer != null)
+        {
+            inputLayerController.PopLayer(currentInputLayer);
+            currentInputLayer = null;
+        }
+    }
+
+    public override void ResetInAnimation(ISceneTransitionContext context)
+        => sceneTransitionAnimatorManager.ResetInAnimation();
+
+    protected override async UniTask InAnimation(ISceneTransitionContext context)
+        => await sceneTransitionAnimatorManager.InAnimation();
+
+    protected override async UniTask OutAnimation(ISceneTransitionContext context)
+        => await sceneTransitionAnimatorManager.OutAnimation();
+
+#if UNITY_EDITOR
+    protected override void OnValidate()
+    {
+        base.OnValidate();
+        sceneTransitionAnimatorManager ??= GetComponent<LHSceneTransitionAnimatorManager>();
+    }
+#endif
 }
 ```
 
-Each scene can inherit from this class to reduce boilerplate.
+Each scene then becomes minimal:
+
+```csharp
+public class HomeScene : YourProductCanvasMainSceneBase<HomeScene.HomeTransitionData>
+{
+    IHomePresenter homePresenter;
+
+    public override MainSceneId MainSceneId => YourProductMainSceneId.Home;
+
+    public class HomeTransitionData : TransitionDataBase
+    {
+        public override MainSceneId MainSceneId => YourProductMainSceneId.Home;
+    }
+
+    [Inject]
+    public void Construct(IHomePresenter homePresenter)
+    {
+        this.homePresenter = homePresenter;
+    }
+
+    protected override IInputLayer CreateInputLayer(InputActions inputActions)
+        => new DefaultSceneInputLayer(inputActions);
+
+    protected override UniTask OnEnter(HomeTransitionData data,
+        ISceneTransitionContext context, CancellationToken ct)
+    {
+        homePresenter.OnEnter();
+        return UniTask.CompletedTask;
+    }
+}
+```
 
 ### SceneGroupProvider Implementation
 
@@ -163,14 +270,41 @@ public sealed class SceneGroupProvider : ISceneGroupProvider
         new[] { YourProductMainSceneId.Home },
     };
 
+    static readonly SceneGroup[] SceneGroupList = CreateSceneGroups();
+
     SceneGroup ISceneGroupProvider.GetSceneGroup(MainSceneId mainSceneId)
     {
         return SceneGroupList.First(g => g.MainSceneIds.Contains(mainSceneId));
     }
 
-    // ... (SceneGroup construction logic)
+    static SceneGroup[] CreateSceneGroups()
+    {
+#if UNITY_EDITOR
+        // Detect scenes assigned to more than one group at edit time.
+        var duplicates = MainSceneGroupList
+            .SelectMany(g => g)
+            .GroupBy(id => id.Name)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToArray();
+        if (duplicates.Length > 0)
+            throw new Exception($"Duplicate scenes in SceneGroupList: {string.Join(", ", duplicates)}");
+#endif
+        return MainSceneGroupList.Select(CreateSceneGroup).ToArray();
+    }
+
+    static SceneGroup CreateSceneGroup(MainSceneId[] mainSceneIds)
+    {
+        var map = mainSceneIds.ToDictionary(
+            id => id,
+            id => RequireModuleSceneIds
+                .Concat(SceneModuleMap[id] ?? Array.Empty<ModuleSceneId>())
+                .ToArray());
+
+        return new SceneGroup(map);
+    }
 }
 ```
 
 > The `MainSceneGroupList` definition determines the scene caching strategy.  
-> Scenes in the same group are loaded and cached simultaneously.
+> Scenes in the same group are loaded and cached simultaneously. A scene must appear in exactly one group — the editor-mode duplicate check catches misconfiguration early.

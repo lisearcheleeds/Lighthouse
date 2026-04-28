@@ -16,8 +16,7 @@
 Lighthouse 的场景系统与 VContainer DI 作用域协同工作。  
 准备以下脚本、Prefab 和 ScriptableObject 后，即可配置应用程序的启动流程。
 
-> VContainer 基本用法: **[TODO: VContainer 文档 URL]**  
-> Unity 项目初始设置辅助: **[TODO: Preset startup unity package URL]**
+> VContainer 基本用法: [https://vcontainer.hadashikick.jp](https://vcontainer.hadashikick.jp)
 
 ### 推荐文件结构
 
@@ -122,14 +121,17 @@ public class RootEntryPoint : IStartable
 public class ProductLifetimeScope : LifetimeScope
 {
     [SerializeField] ProductLifetimeScopeSettings productLifetimeScopeSettings;
-    // ...其他字段（LHCanvasSceneObject、SupportedLanguageSettings 等）
+    [SerializeField] SupportedLanguageSettings supportedLanguageSettings;  // 使用 Language 时
+    [SerializeField] LanguageFontSettings languageFontSettings;            // 使用 Font 时
+    [SerializeField] LHCanvasSceneObject canvasSceneObjectPrefab;
+    [SerializeField] LHInputBlocker inputBlockerPrefab;
 
     protected override void Configure(IContainerBuilder builder)
     {
         builder.RegisterEntryPoint<ProductEntryPoint>();
         builder.RegisterInstance(productLifetimeScopeSettings);
 
-        // Lighthouse 核心服务
+        // Lighthouse 核心
         builder.Register<SceneManager>(Lifetime.Singleton).AsImplementedInterfaces();
         builder.Register<SceneTransitionController>(Lifetime.Singleton).AsImplementedInterfaces();
         builder.Register<DefaultSceneTransitionContextFactory>(Lifetime.Singleton).AsImplementedInterfaces();
@@ -139,28 +141,108 @@ public class ProductLifetimeScope : LifetimeScope
         builder.Register<SceneCameraManager>(Lifetime.Singleton).AsImplementedInterfaces();
         builder.Register<DefaultSceneTransitionSequenceProvider>(Lifetime.Singleton).AsImplementedInterfaces();
 
-        // 按需添加 LighthouseExtends 服务
+        // LighthouseExtends — Language / Font / TextTable
+        builder.RegisterInstance(supportedLanguageSettings);
+        builder.Register<SupportedLanguageService>(Lifetime.Singleton).AsImplementedInterfaces();
+        builder.Register<LanguageService>(Lifetime.Singleton).AsImplementedInterfaces();
+        builder.RegisterInstance(languageFontSettings);
+        builder.Register<FontService>(Lifetime.Singleton).AsImplementedInterfaces();
+        builder.Register<TextTableService>(Lifetime.Singleton).AsImplementedInterfaces();
+
+        // FontService 和 TextTableService 默认延迟解析。
+        // 为确保在 SetLanguage 调用前已向 ILanguageService 注册处理器，
+        // 通过 RegisterBuildCallback 强制立即解析。
+        builder.RegisterBuildCallback(container =>
+        {
+            container.Resolve<IFontService>();
+            container.Resolve<ITextTableService>();
+        });
+
+        // LighthouseExtends — UIComponent / InputLayer
+        builder.Register<ExclusiveInputService>(Lifetime.Singleton).AsImplementedInterfaces();
+        builder.RegisterComponentInNewPrefab(canvasSceneObjectPrefab, Lifetime.Singleton)
+            .DontDestroyOnLoad().AsImplementedInterfaces();
+        builder.RegisterComponentInNewPrefab(inputBlockerPrefab, Lifetime.Singleton)
+            .DontDestroyOnLoad().AsImplementedInterfaces();
+
+        var inputActions = new InputActions();
+        builder.RegisterInstance(inputActions);
+        builder.RegisterInstance(inputActions.asset).As<InputActionAsset>();
+        builder.Register<InputLayerController>(Lifetime.Singleton).AsImplementedInterfaces();
+
+        // LighthouseExtends — ScreenStack
+        builder.Register<ScreenStackModuleProxy>(Lifetime.Singleton).AsImplementedInterfaces();
+
+        // 产品专属服务
+        builder.Register<Launcher>(Lifetime.Singleton).AsImplementedInterfaces();
     }
 }
 ```
 
-在 `ProductEntryPoint` 中设置场景管理器的父作用域并触发初始场景启动。
+> **为什么需要 `RegisterBuildCallback`？**  
+> VContainer 的单例默认延迟解析。FontService 和 TextTableService 必须在 `ProductEntryPoint` 调用 `SetLanguage` *之前* 向 `ILanguageService` 注册处理器。若省略此步骤，首次语言切换完成时字体和文本尚未加载，导致 UI 处于错误状态。
+
+在 `ProductEntryPoint` 中设置场景管理器的父作用域，并从设备语言解析初始语言。
 
 ```csharp
 public class ProductEntryPoint : IAsyncStartable
 {
-    // ... 字段及 [Inject] 构造函数
+    readonly ProductLifetimeScope productLifetimeScope;
+    readonly ILauncher launcher;
+    readonly IMainSceneManager mainSceneManager;
+    readonly IModuleSceneManager moduleSceneManager;
+    readonly ILanguageService languageService;
+    readonly ISupportedLanguageService supportedLanguageService;
+
+    [Inject]
+    public ProductEntryPoint(
+        ProductLifetimeScope productLifetimeScope,
+        ILauncher launcher,
+        IMainSceneManager mainSceneManager,
+        IModuleSceneManager moduleSceneManager,
+        ILanguageService languageService,
+        ISupportedLanguageService supportedLanguageService)
+    {
+        this.productLifetimeScope = productLifetimeScope;
+        this.launcher = launcher;
+        this.mainSceneManager = mainSceneManager;
+        this.moduleSceneManager = moduleSceneManager;
+        this.languageService = languageService;
+        this.supportedLanguageService = supportedLanguageService;
+    }
 
     public async UniTask StartAsync(CancellationToken cancellation)
     {
-        mainSceneManager.SetEnqueueParentLifetimeScope(() => LifetimeScope.EnqueueParent(productLifetimeScope));
-        moduleSceneManager.SetEnqueueParentLifetimeScope(() => LifetimeScope.EnqueueParent(productLifetimeScope));
+        mainSceneManager.SetEnqueueParentLifetimeScope(
+            () => LifetimeScope.EnqueueParent(productLifetimeScope));
+        moduleSceneManager.SetEnqueueParentLifetimeScope(
+            () => LifetimeScope.EnqueueParent(productLifetimeScope));
 
-        // 语言初始化（使用 Language 时）
-        await languageService.SetLanguage("ja", cancellation);
+        await languageService.SetLanguage(
+            ResolveInitialLanguage(Application.systemLanguage), cancellation);
 
-        // 跳转到初始场景等
         await launcher.Launch();
+    }
+
+    string ResolveInitialLanguage(SystemLanguage systemLanguage)
+    {
+        var code = systemLanguage switch
+        {
+            SystemLanguage.Japanese           => "ja",
+            SystemLanguage.ChineseSimplified  => "zh",
+            SystemLanguage.ChineseTraditional => "zh",
+            SystemLanguage.Korean             => "ko",
+            _                                 => "en",
+        };
+
+        // 若不在支持的语言列表中，则回退到默认语言
+        var supported = supportedLanguageService.SupportedLanguages;
+        for (var i = 0; i < supported.Count; i++)
+        {
+            if (supported[i] == code) return code;
+        }
+
+        return supportedLanguageService.DefaultLanguage;
     }
 }
 ```

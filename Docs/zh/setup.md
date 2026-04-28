@@ -4,8 +4,7 @@
 
 ## 快速入门套件（UnityPackage）
 
-提供可跳过大部分设置步骤的 UnityPackage。  
-[TODO: UnityPackage URL]
+可跳过大部分设置步骤的 UnityPackage 可从 [Releases](https://github.com/lisearcheleeds/Lighthouse/releases) 下载。
 
 ### 可跳过的步骤
 

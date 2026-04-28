@@ -16,8 +16,7 @@
 Lighthouse のシーンシステムは VContainer の DI スコープと連携して動作します。  
 以下のスクリプトと Prefab・ScriptableObject を用意することで、アプリケーションの起動フローが構成されます。
 
-> VContainer の基本的な使い方: **[TODO: VContainer ドキュメント URL]**  
-> Unity プロジェクトの初期セットアップ補助: **[TODO: Preset startup unity package URL]**
+> VContainer の基本的な使い方: [https://vcontainer.hadashikick.jp](https://vcontainer.hadashikick.jp)
 
 ### 推奨ファイル構成
 
@@ -122,14 +121,17 @@ public class RootEntryPoint : IStartable
 public class ProductLifetimeScope : LifetimeScope
 {
     [SerializeField] ProductLifetimeScopeSettings productLifetimeScopeSettings;
-    // ...その他フィールド（LHCanvasSceneObject, SupportedLanguageSettings など）
+    [SerializeField] SupportedLanguageSettings supportedLanguageSettings;  // Language 使用時
+    [SerializeField] LanguageFontSettings languageFontSettings;            // Font 使用時
+    [SerializeField] LHCanvasSceneObject canvasSceneObjectPrefab;
+    [SerializeField] LHInputBlocker inputBlockerPrefab;
 
     protected override void Configure(IContainerBuilder builder)
     {
         builder.RegisterEntryPoint<ProductEntryPoint>();
         builder.RegisterInstance(productLifetimeScopeSettings);
 
-        // Lighthouse コアサービス
+        // Lighthouse コア
         builder.Register<SceneManager>(Lifetime.Singleton).AsImplementedInterfaces();
         builder.Register<SceneTransitionController>(Lifetime.Singleton).AsImplementedInterfaces();
         builder.Register<DefaultSceneTransitionContextFactory>(Lifetime.Singleton).AsImplementedInterfaces();
@@ -139,28 +141,108 @@ public class ProductLifetimeScope : LifetimeScope
         builder.Register<SceneCameraManager>(Lifetime.Singleton).AsImplementedInterfaces();
         builder.Register<DefaultSceneTransitionSequenceProvider>(Lifetime.Singleton).AsImplementedInterfaces();
 
-        // 使用する LighthouseExtends サービスを必要に応じて追加
+        // LighthouseExtends — Language / Font / TextTable
+        builder.RegisterInstance(supportedLanguageSettings);
+        builder.Register<SupportedLanguageService>(Lifetime.Singleton).AsImplementedInterfaces();
+        builder.Register<LanguageService>(Lifetime.Singleton).AsImplementedInterfaces();
+        builder.RegisterInstance(languageFontSettings);
+        builder.Register<FontService>(Lifetime.Singleton).AsImplementedInterfaces();
+        builder.Register<TextTableService>(Lifetime.Singleton).AsImplementedInterfaces();
+
+        // FontService と TextTableService はデフォルトで遅延解決されます。
+        // SetLanguage が呼ばれる前にハンドラを ILanguageService に登録させるため、
+        // RegisterBuildCallback で強制的に即時解決します。
+        builder.RegisterBuildCallback(container =>
+        {
+            container.Resolve<IFontService>();
+            container.Resolve<ITextTableService>();
+        });
+
+        // LighthouseExtends — UIComponent / InputLayer
+        builder.Register<ExclusiveInputService>(Lifetime.Singleton).AsImplementedInterfaces();
+        builder.RegisterComponentInNewPrefab(canvasSceneObjectPrefab, Lifetime.Singleton)
+            .DontDestroyOnLoad().AsImplementedInterfaces();
+        builder.RegisterComponentInNewPrefab(inputBlockerPrefab, Lifetime.Singleton)
+            .DontDestroyOnLoad().AsImplementedInterfaces();
+
+        var inputActions = new InputActions();
+        builder.RegisterInstance(inputActions);
+        builder.RegisterInstance(inputActions.asset).As<InputActionAsset>();
+        builder.Register<InputLayerController>(Lifetime.Singleton).AsImplementedInterfaces();
+
+        // LighthouseExtends — ScreenStack
+        builder.Register<ScreenStackModuleProxy>(Lifetime.Singleton).AsImplementedInterfaces();
+
+        // プロダクト固有サービス
+        builder.Register<Launcher>(Lifetime.Singleton).AsImplementedInterfaces();
     }
 }
 ```
 
-`ProductEntryPoint` では、シーンマネージャーへの親スコープ設定と初回シーン起動を行います。
+> **なぜ `RegisterBuildCallback` が必要か？**  
+> VContainer のシングルトンはデフォルトで遅延解決されます。FontService と TextTableService は、`ProductEntryPoint` で `SetLanguage` が呼ばれる*前*に `ILanguageService` へハンドラを登録しておく必要があります。これを省略すると、初回の言語切り替え完了時点でフォントとテキストがまだロードされておらず、UIが不正な状態になります。
+
+`ProductEntryPoint` ではシーンマネージャーへの親スコープ設定と、端末のロケールからの言語解決を行います。
 
 ```csharp
 public class ProductEntryPoint : IAsyncStartable
 {
-    // ... フィールドと [Inject] コンストラクタ
+    readonly ProductLifetimeScope productLifetimeScope;
+    readonly ILauncher launcher;
+    readonly IMainSceneManager mainSceneManager;
+    readonly IModuleSceneManager moduleSceneManager;
+    readonly ILanguageService languageService;
+    readonly ISupportedLanguageService supportedLanguageService;
+
+    [Inject]
+    public ProductEntryPoint(
+        ProductLifetimeScope productLifetimeScope,
+        ILauncher launcher,
+        IMainSceneManager mainSceneManager,
+        IModuleSceneManager moduleSceneManager,
+        ILanguageService languageService,
+        ISupportedLanguageService supportedLanguageService)
+    {
+        this.productLifetimeScope = productLifetimeScope;
+        this.launcher = launcher;
+        this.mainSceneManager = mainSceneManager;
+        this.moduleSceneManager = moduleSceneManager;
+        this.languageService = languageService;
+        this.supportedLanguageService = supportedLanguageService;
+    }
 
     public async UniTask StartAsync(CancellationToken cancellation)
     {
-        mainSceneManager.SetEnqueueParentLifetimeScope(() => LifetimeScope.EnqueueParent(productLifetimeScope));
-        moduleSceneManager.SetEnqueueParentLifetimeScope(() => LifetimeScope.EnqueueParent(productLifetimeScope));
+        mainSceneManager.SetEnqueueParentLifetimeScope(
+            () => LifetimeScope.EnqueueParent(productLifetimeScope));
+        moduleSceneManager.SetEnqueueParentLifetimeScope(
+            () => LifetimeScope.EnqueueParent(productLifetimeScope));
 
-        // 言語初期化（Language 使用時）
-        await languageService.SetLanguage("ja", cancellation);
+        await languageService.SetLanguage(
+            ResolveInitialLanguage(Application.systemLanguage), cancellation);
 
-        // 初回シーンへの遷移など
         await launcher.Launch();
+    }
+
+    string ResolveInitialLanguage(SystemLanguage systemLanguage)
+    {
+        var code = systemLanguage switch
+        {
+            SystemLanguage.Japanese           => "ja",
+            SystemLanguage.ChineseSimplified  => "zh",
+            SystemLanguage.ChineseTraditional => "zh",
+            SystemLanguage.Korean             => "ko",
+            _                                 => "en",
+        };
+
+        // 対応言語に含まれない場合はデフォルト言語にフォールバック
+        var supported = supportedLanguageService.SupportedLanguages;
+        for (var i = 0; i < supported.Count; i++)
+        {
+            if (supported[i] == code) return code;
+        }
+
+        return supportedLanguageService.DefaultLanguage;
     }
 }
 ```
