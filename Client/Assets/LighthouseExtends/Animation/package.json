@@ -1,6 +1,6 @@
 {
   "name": "com.lisearcheleeds.lighthouse-extends.animation",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "displayName": "Lighthouse Extends - Animation",
   "description": "In/Out animation clip playback via PlayableGraph for Lighthouse scene transitions.",
   "unity": "6000.0",

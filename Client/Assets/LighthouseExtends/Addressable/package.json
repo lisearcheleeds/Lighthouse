@@ -1,0 +1,21 @@
+{
+  "name": "com.lisearcheleeds.lighthouse-extends.addressable",
+  "version": "1.0.0",
+  "displayName": "Lighthouse Extends - Addressable",
+  "description": "Ref-counted Addressables wrapper with scoped asset management and parallel loading support.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Lise",
+    "url": "https://github.com/lisearcheleeds"
+  },
+  "keywords": [
+    "lighthouse",
+    "addressables",
+    "asset",
+    "loader"
+  ],
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.10",
+    "com.unity.addressables": "2.9.1"
+  }
+}

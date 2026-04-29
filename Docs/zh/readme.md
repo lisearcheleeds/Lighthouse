@@ -19,6 +19,7 @@
   - [Suspend / Resume](#suspend--resume)
   - [ScreenStackModuleProxy](#screenstackmoduleproxy)
   - [代码生成](#代码生成)
+- [Addressable](#addressable)
 - [Animation](#animation)
 - [Language](#language)
 - [Font](#font)
@@ -336,6 +337,96 @@ public class SampleDialogData : IScreenStackData
 
 - **ScreenStackDialogScriptGeneratorWindow**: 从模板生成对话框的 View / Data 类
 - **ScreenStackEntityFactoryGenerator**: 自动生成 `IScreenStackEntityFactory` 的 switch 分支
+
+---
+
+## Addressable
+
+**包名：** `com.lisearcheleeds.lighthouse-extends.addressable`  
+**依赖包：** UniTask · Unity Addressables
+
+引用计数式 Addressables 封装，支持基于作用域的资源生命周期管理和并行加载。按地址追踪引用计数；多个作用域共享同一地址时复用同一 `AsyncOperationHandle`，仅在最后一个句柄被释放时才调用 `Addressables.Release`。
+
+### IAssetManager
+
+将 `AssetManager` 注册到 DI 并以 `IAssetManager` 注入。调用 `CreateScope()` 获取用于加载资源的 `IAssetScope`。
+
+```csharp
+// VContainer 示例
+builder.Register<AssetManager>(Lifetime.Singleton).As<IAssetManager>();
+```
+
+### IAssetScope
+
+每个场景（或每个逻辑加载上下文）创建一个作用域。释放作用域时，其持有的所有句柄将被一并释放。
+
+```csharp
+IAssetScope scope = assetManager.CreateScope();
+
+// 按地址加载单个资源
+IAssetHandle<Sprite> handle = await scope.LoadAsync<Sprite>("ui/icon_home", ct);
+icon.sprite = handle.Asset;
+
+// 按地址列表顺序加载多个资源
+IReadOnlyList<IAssetHandle<Sprite>> handles =
+    await scope.LoadAsync<Sprite>(new[] { "ui/icon_a", "ui/icon_b" }, ct);
+
+// 加载匹配标签的所有资源
+IReadOnlyList<AudioClip> clips = await scope.LoadByLabelAsync<AudioClip>("bgm", ct);
+
+// 释放此作用域持有的所有句柄
+scope.Dispose();
+```
+
+| 方法 | 说明 |
+|---|---|
+| `LoadAsync<T>(string address, ct)` | 按地址加载单个资源，返回 `IAssetHandle<T>` |
+| `LoadAsync<T>(IReadOnlyList<string> addresses, ct)` | 顺序加载多个资源，返回 `IReadOnlyList<IAssetHandle<T>>` |
+| `LoadByLabelAsync<T>(string label, ct)` | 加载匹配标签的所有资源，返回 `IReadOnlyList<T>` |
+| `TryLoadAsync(ParallelLoadData data, ct)` | 并行加载多种类型资源，允许部分失败，返回 `ParallelLoadResult` |
+| `Dispose()` | 释放此作用域获取的所有句柄 |
+
+### IAssetHandle\<T\>
+
+| 成员 | 说明 |
+|---|---|
+| `Asset` | 已加载的 `UnityEngine.Object` |
+| `IsDisposed` | 调用 `Dispose()` 后为 `true` |
+| `Dispose()` | 递减引用计数；计数归零时调用 `Addressables.Release` |
+
+可在作用域释放前提前 Dispose 单个句柄以更早释放内存。
+
+### 并行加载
+
+`TryLoadAsync` 同时启动所有加载并汇总各自结果。与普通 `WhenAll` 不同，其中一个请求失败不会取消其他请求。
+
+```csharp
+var data = new ParallelLoadData();
+var iconReq  = data.Add<Sprite>("ui/icon_home");
+var bgReq    = data.Add<Texture2D>("ui/background");
+var audioReq = data.Add<AudioClip>("audio/bgm_home");
+
+ParallelLoadResult result = await scope.TryLoadAsync(data, ct);
+
+if (result.IsSuccess(iconReq))
+    icon.sprite = result.Get(iconReq).Asset;
+
+if (result.IsSuccess(bgReq))
+    background.texture = result.Get(bgReq).Asset;
+
+if (!result.IsSuccess(audioReq))
+    Debug.LogWarning("BGM 加载失败");
+```
+
+| 成员 | 说明 |
+|---|---|
+| `ParallelLoadData.Add<T>(string address)` | 注册加载请求，返回 `AssetRequest<T>` 令牌 |
+| `ParallelLoadResult.IsSuccess<T>(request)` | 请求是否成功 |
+| `ParallelLoadResult.Get<T>(request)` | 成功返回 `IAssetHandle<T>`，失败返回 `null` |
+
+### 取消行为
+
+传入 `CancellationToken` 会取消 **await**，但不会取消底层 Addressables 操作——因为该句柄可能被其他调用方共享。令牌触发后抛出 `OperationCanceledException`，并递减该地址的引用计数。句柄不会被添加到作用域中。
 
 ---
 

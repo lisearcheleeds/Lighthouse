@@ -5,8 +5,7 @@
 [VContainer](https://github.com/hadashiA/VContainer) と [UniTask](https://github.com/Cysharp/UniTask) を基盤とした、
 構造化されたシーン管理システム・ダイアログスタック・拡張可能なランタイムモジュール群を提供する Unity アプリケーションフレームワークです。
 
-現在のバージョンは 0.9.0 のプレリリースです。
-バージョン 1.0.0 は 4 月 29 日リリース予定です。
+現在のバージョンは **1.0.0** です。
 
 <img width="1677" height="938" alt="lighthouse" src="https://github.com/user-attachments/assets/f0e9c5de-f858-4e0d-be63-7e57a4d6558c" />
 
@@ -49,16 +48,17 @@ https://lisearcheleeds.github.io/LighthouseSample/
 ```json
 {
   "dependencies": {
-    "com.lisearcheleeds.lighthouse": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/Lighthouse#v0.9.0",
+    "com.lisearcheleeds.lighthouse": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/Lighthouse#v1.0.0",
 
-    "com.lisearcheleeds.lighthouse-extends.animation":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Animation#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.inputlayer":  "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/InputLayer#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.language":    "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Language#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.font":        "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Font#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.texttable":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextTable#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.textmeshpro": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextMeshPro#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.uicomponent": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/UIComponent#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.screenstack": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/ScreenStack#v0.9.0"
+    "com.lisearcheleeds.lighthouse-extends.animation":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Animation#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.inputlayer":  "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/InputLayer#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.language":    "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Language#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.font":        "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Font#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.texttable":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextTable#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.textmeshpro": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextMeshPro#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.uicomponent": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/UIComponent#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.screenstack": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/ScreenStack#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.addressable": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Addressable#v1.0.0"
   }
 }
 ```
@@ -114,6 +114,7 @@ https://lisearcheleeds.github.io/LighthouseSample/
 
 | モジュール | 説明 |
 |---|---|
+| **Addressable** | `AssetManager` — 参照カウント方式の Addressables ラッパー。スコープ単位のアセットライフタイム管理と並列ロードをサポートします。 |
 | **Animation** | `LHTransitionAnimator` / `LHSceneTransitionAnimator` — `PlayableGraph` 経由の In/Out クリップ再生。方向ごとの開始ディレイと排他制御をサポート。 |
 | **Language** | `LanguageService` — リアクティブな言語切り替え。`CurrentLanguage` 更新前に登録済みハンドラーが並列で呼び出されます。 |
 | **Font** | `FontService` — `ILanguageService` を購読し、言語変更のたびに `LanguageFontSettings` から `CurrentFont`（TMP_FontAsset）を更新します。 |
@@ -136,6 +137,7 @@ LighthouseArchitecture/
 │       └── *.cs                    # SceneManager、コンテキスト、データモデル
 │
 └── LighthouseExtends/              # オプションのランタイム & エディターモジュール
+    ├── Addressable/
     ├── Animation/
     ├── Font/
     ├── InputLayer/

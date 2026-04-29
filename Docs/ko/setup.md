@@ -4,8 +4,7 @@
 
 ## 스타터 킷 (UnityPackage)
 
-설정 작업의 대부분을 건너뛸 수 있는 UnityPackage를 제공합니다.  
-[TODO: UnityPackage URL]
+설정 작업의 대부분을 건너뛸 수 있는 UnityPackage를 [Releases](https://github.com/lisearcheleeds/Lighthouse/releases)에서 다운로드할 수 있습니다.
 
 ### 건너뛸 수 있는 단계
 

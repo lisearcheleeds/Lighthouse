@@ -19,6 +19,7 @@
   - [Suspend / Resume](#suspend--resume)
   - [ScreenStackModuleProxy](#screenstackmoduleproxy)
   - [コード生成](#コード生成)
+- [Addressable](#addressable)
 - [Animation](#animation)
 - [Language](#language)
 - [Font](#font)
@@ -336,6 +337,96 @@ DI スコープをまたいでスタック API にアクセスするためのプ
 
 - **ScreenStackDialogScriptGeneratorWindow**: ダイアログの View / Data クラスをテンプレートから生成
 - **ScreenStackEntityFactoryGenerator**: `IScreenStackEntityFactory` の switch 分岐を自動生成
+
+---
+
+## Addressable
+
+**パッケージ:** `com.lisearcheleeds.lighthouse-extends.addressable`  
+**依存パッケージ:** UniTask · Unity Addressables
+
+参照カウント方式の Addressables ラッパーです。スコープ単位のアセットライフタイム管理と並列ロードをサポートします。アドレスごとに参照カウントを管理し、同一アドレスを複数のスコープが共有する場合は同じ `AsyncOperationHandle` を再利用します。最後のハンドルが解放されたときに初めて `Addressables.Release` が呼ばれます。
+
+### IAssetManager
+
+DI に `AssetManager` を登録し、`IAssetManager` として注入します。`CreateScope()` を呼ぶとアセットロード用の `IAssetScope` が得られます。
+
+```csharp
+// VContainer の例
+builder.Register<AssetManager>(Lifetime.Singleton).As<IAssetManager>();
+```
+
+### IAssetScope
+
+シーンごと（または論理的なロードコンテキストごと）にスコープを1つ作成します。スコープを Dispose すると、取得済みのすべてのハンドルが一括解放されます。
+
+```csharp
+IAssetScope scope = assetManager.CreateScope();
+
+// アドレスを指定して単体ロード
+IAssetHandle<Sprite> handle = await scope.LoadAsync<Sprite>("ui/icon_home", ct);
+icon.sprite = handle.Asset;
+
+// アドレスリストを指定して複数ロード（順次）
+IReadOnlyList<IAssetHandle<Sprite>> handles =
+    await scope.LoadAsync<Sprite>(new[] { "ui/icon_a", "ui/icon_b" }, ct);
+
+// ラベルに一致する全アセットをロード
+IReadOnlyList<AudioClip> clips = await scope.LoadByLabelAsync<AudioClip>("bgm", ct);
+
+// スコープが保持する全ハンドルを解放
+scope.Dispose();
+```
+
+| メソッド | 説明 |
+|---|---|
+| `LoadAsync<T>(string address, ct)` | アドレスを指定して単体ロード。`IAssetHandle<T>` を返す |
+| `LoadAsync<T>(IReadOnlyList<string> addresses, ct)` | アドレスリストを指定して順次ロード。`IReadOnlyList<IAssetHandle<T>>` を返す |
+| `LoadByLabelAsync<T>(string label, ct)` | ラベルに一致する全アセットをロード。`IReadOnlyList<T>` を返す |
+| `TryLoadAsync(ParallelLoadData data, ct)` | 異なる型のアセットを並列ロード。一部失敗を許容。`ParallelLoadResult` を返す |
+| `Dispose()` | スコープが取得した全ハンドルを解放 |
+
+### IAssetHandle\<T\>
+
+| メンバー | 説明 |
+|---|---|
+| `Asset` | ロード済みの `UnityEngine.Object` |
+| `IsDisposed` | `Dispose()` 後は `true` |
+| `Dispose()` | 参照カウントをデクリメント。カウントが 0 になると `Addressables.Release` が呼ばれる |
+
+スコープを Dispose する前に個別ハンドルを先に Dispose することで、早期にメモリを解放できます。
+
+### 並列ロード
+
+`TryLoadAsync` はすべてのロードを同時に開始し、結果をまとめて返します。一つのリクエストが失敗しても他のリクエストはキャンセルされません。
+
+```csharp
+var data = new ParallelLoadData();
+var iconReq  = data.Add<Sprite>("ui/icon_home");
+var bgReq    = data.Add<Texture2D>("ui/background");
+var audioReq = data.Add<AudioClip>("audio/bgm_home");
+
+ParallelLoadResult result = await scope.TryLoadAsync(data, ct);
+
+if (result.IsSuccess(iconReq))
+    icon.sprite = result.Get(iconReq).Asset;
+
+if (result.IsSuccess(bgReq))
+    background.texture = result.Get(bgReq).Asset;
+
+if (!result.IsSuccess(audioReq))
+    Debug.LogWarning("BGM のロードに失敗しました");
+```
+
+| メンバー | 説明 |
+|---|---|
+| `ParallelLoadData.Add<T>(string address)` | ロードリクエストを登録。`AssetRequest<T>` トークンを返す |
+| `ParallelLoadResult.IsSuccess<T>(request)` | リクエストが成功したかどうか |
+| `ParallelLoadResult.Get<T>(request)` | 成功した場合は `IAssetHandle<T>` を、失敗した場合は `null` を返す |
+
+### キャンセルの挙動
+
+`CancellationToken` を渡すと **await** がキャンセルされますが、同一ハンドルを他の呼び出し元が共有している可能性があるため、Addressables の内部ロードはキャンセルされません。トークンが発火すると `OperationCanceledException` がスローされ、そのアドレスの参照カウントがデクリメントされます。ハンドルはスコープに追加されません。
 
 ---
 

@@ -11,38 +11,38 @@ using VContainer;
 
 namespace LighthouseExtends.ScreenStack
 {
-    public sealed class ScreenStackManager : IScreenStackManager
+    public class ScreenStackManager : IScreenStackManager
     {
-        readonly IScreenStackCanvasController screenStackCanvasController;
-        readonly IScreenStackEntityFactory screenStackEntityFactory;
-        readonly IScreenStackBackgroundInputBlocker screenStackBackgroundInputBlocker;
-        readonly IInputBlocker inputBlocker;
+        protected List<(MainSceneId SceneId, List<IScreenStackData> DataList)> ScreenStackDataSceneList { get; } = new();
+        protected List<ScreenStackEntity> ScreenStackEntityList { get; } = new();
 
-        readonly List<(MainSceneId SceneId, List<IScreenStackData> DataList)> screenStackDataSceneList = new();
-        readonly List<ScreenStackEntity> screenStackEntityList = new();
+        protected Queue<Func<UniTask>> CommandQueue { get; } = new();
 
-        readonly Queue<Func<UniTask>> commandQueue = new();
+        protected IScreenStackCanvasController ScreenStackCanvasController { get; private set; }
+        protected IScreenStackEntityFactory ScreenStackEntityFactory { get; private set; }
+        protected IScreenStackBackgroundInputBlocker ScreenStackBackgroundInputBlocker { get; private set; }
+        protected IInputBlocker InputBlocker { get; private set; }
 
-        List<IScreenStackData> screenStackDataList;
+        protected List<IScreenStackData> ScreenStackDataList { get; set; }
 
-        bool isProcessing;
+        protected bool IsProcessing { get; set; }
 
         [Inject]
-        public ScreenStackManager(
+        public void Construct(
             IScreenStackCanvasController screenStackCanvasController,
             IScreenStackEntityFactory screenStackEntityFactory,
             IScreenStackBackgroundInputBlocker screenStackBackgroundInputBlocker,
             IInputBlocker inputBlocker)
         {
-            this.screenStackCanvasController = screenStackCanvasController;
-            this.screenStackEntityFactory = screenStackEntityFactory;
-            this.screenStackBackgroundInputBlocker = screenStackBackgroundInputBlocker;
-            this.inputBlocker = inputBlocker;
+            this.ScreenStackCanvasController = screenStackCanvasController;
+            this.ScreenStackEntityFactory = screenStackEntityFactory;
+            this.ScreenStackBackgroundInputBlocker = screenStackBackgroundInputBlocker;
+            this.InputBlocker = inputBlocker;
         }
 
         void IScreenStackManager.Setup()
         {
-            screenStackBackgroundInputBlocker.Setup();
+            ScreenStackBackgroundInputBlocker.Setup();
         }
 
         UniTask IScreenStackManager.Enqueue(IScreenStackData screenStackData)
@@ -94,7 +94,7 @@ namespace LighthouseExtends.ScreenStack
             {
                 ResumeScreenStackFromSceneIdCore(mainSceneId);
 
-                if (screenStackDataList?.Any() ?? false)
+                if (ScreenStackDataList?.Any() ?? false)
                 {
                     await ResumeOpenScreenStacksCore(isPlayInAnimation);
                 }
@@ -114,7 +114,7 @@ namespace LighthouseExtends.ScreenStack
         {
             var tcs = new UniTaskCompletionSource();
 
-            commandQueue.Enqueue(async () =>
+            CommandQueue.Enqueue(async () =>
             {
                 try
                 {
@@ -130,15 +130,15 @@ namespace LighthouseExtends.ScreenStack
                     // State consistency cannot be guaranteed after an unexpected exception.
                     // Clear the queue and force-dispose all entities so callers can reboot cleanly.
                     LHLogger.LogError($"[ScreenStackManager] Unhandled exception in command. Force disposing all stacks.\n{ex}");
-                    commandQueue.Clear();
+                    CommandQueue.Clear();
                     ForceDisposeAll();
                     tcs.TrySetException(ex);
                 }
             });
 
-            if (!isProcessing)
+            if (!IsProcessing)
             {
-                isProcessing = true;
+                IsProcessing = true;
                 CommandProcessLoop().Forget();
             }
 
@@ -149,46 +149,46 @@ namespace LighthouseExtends.ScreenStack
         {
             try
             {
-                inputBlocker.Block<ScreenStackManager>();
+                InputBlocker.Block<ScreenStackManager>();
 
-                while (commandQueue.Count > 0)
+                while (CommandQueue.Count > 0)
                 {
-                    await commandQueue.Dequeue()();
+                    await CommandQueue.Dequeue()();
                 }
             }
             finally
             {
-                inputBlocker.UnBlock<ScreenStackManager>();
-                isProcessing = false;
+                InputBlocker.UnBlock<ScreenStackManager>();
+                IsProcessing = false;
             }
         }
 
         void EnqueueScreenStackCore(IScreenStackData screenStackData)
         {
-            if (screenStackDataList == null)
+            if (ScreenStackDataList == null)
             {
-                screenStackDataList = new List<IScreenStackData>();
+                ScreenStackDataList = new List<IScreenStackData>();
             }
 
-            screenStackDataList.Add(screenStackData);
+            ScreenStackDataList.Add(screenStackData);
         }
 
-        async UniTask ResumeOpenScreenStacksCore(bool isPlayInAnimation)
+        protected virtual async UniTask ResumeOpenScreenStacksCore(bool isPlayInAnimation)
         {
             try
             {
-                for (var i = 0; i < screenStackDataList.Count; i++)
+                for (var i = 0; i < ScreenStackDataList.Count; i++)
                 {
-                    var screenStackData = screenStackDataList[i];
-                    var shouldPlayAnimation = isPlayInAnimation && i == screenStackDataList.Count - 1;
+                    var screenStackData = ScreenStackDataList[i];
+                    var shouldPlayAnimation = isPlayInAnimation && i == ScreenStackDataList.Count - 1;
 
-                    var prevScreenStackEntity = screenStackEntityList.LastOrDefault();
+                    var prevScreenStackEntity = ScreenStackEntityList.LastOrDefault();
                     if (prevScreenStackEntity?.ScreenStackData == screenStackData)
                     {
                         throw new InvalidOperationException($"Duplicate open");
                     }
 
-                    var screenStackEntity = await screenStackEntityFactory.CreateAsync(screenStackData, CancellationToken.None);
+                    var screenStackEntity = await ScreenStackEntityFactory.CreateAsync(screenStackData, CancellationToken.None);
                     if (shouldPlayAnimation)
                     {
                         screenStackEntity.ScreenStack.ResetInAnimation();
@@ -198,8 +198,8 @@ namespace LighthouseExtends.ScreenStack
                         screenStackEntity.ScreenStack.EndInAnimation();
                     }
 
-                    screenStackEntityList.Add(screenStackEntity);
-                    screenStackCanvasController.AddChild(screenStackEntity.ScreenStack, screenStackData.IsSystem);
+                    ScreenStackEntityList.Add(screenStackEntity);
+                    ScreenStackCanvasController.AddChild(screenStackEntity.ScreenStack, screenStackData.IsSystem);
 
                     await screenStackEntity.ScreenStack.OnInitialize();
 
@@ -220,7 +220,7 @@ namespace LighthouseExtends.ScreenStack
                         await screenStackEntity.ScreenStack.PlayInAnimation();
                     }
 
-                    screenStackBackgroundInputBlocker.BlockScreenStackBackground(screenStackData.IsSystem);
+                    ScreenStackBackgroundInputBlocker.BlockScreenStackBackground(screenStackData.IsSystem);
                 }
             }
             catch (Exception)
@@ -230,21 +230,21 @@ namespace LighthouseExtends.ScreenStack
             }
         }
 
-        async UniTask OpenScreenStackCore(bool isPlayInAnimation)
+        protected virtual async UniTask OpenScreenStackCore(bool isPlayInAnimation)
         {
-            var screenStackData = screenStackDataList?.LastOrDefault();
+            var screenStackData = ScreenStackDataList?.LastOrDefault();
             if (screenStackData == null)
             {
                 throw new InvalidOperationException($"Empty screenStack data");
             }
 
-            var prevScreenStackEntity = screenStackEntityList.LastOrDefault();
+            var prevScreenStackEntity = ScreenStackEntityList.LastOrDefault();
             if (prevScreenStackEntity?.ScreenStackData == screenStackData)
             {
                 throw new InvalidOperationException($"Duplicate open");
             }
 
-            var screenStackEntity = await screenStackEntityFactory.CreateAsync(screenStackData, CancellationToken.None);
+            var screenStackEntity = await ScreenStackEntityFactory.CreateAsync(screenStackData, CancellationToken.None);
 
             if (isPlayInAnimation)
             {
@@ -255,8 +255,8 @@ namespace LighthouseExtends.ScreenStack
                 screenStackEntity.ScreenStack.EndInAnimation();
             }
 
-            screenStackEntityList.Add(screenStackEntity);
-            screenStackCanvasController.AddChild(screenStackEntity.ScreenStack, screenStackData.IsSystem);
+            ScreenStackEntityList.Add(screenStackEntity);
+            ScreenStackCanvasController.AddChild(screenStackEntity.ScreenStack, screenStackData.IsSystem);
 
             try
             {
@@ -279,11 +279,11 @@ namespace LighthouseExtends.ScreenStack
                     await screenStackEntity.ScreenStack.PlayInAnimation();
                 }
 
-                screenStackBackgroundInputBlocker.BlockScreenStackBackground(screenStackData.IsSystem);
+                ScreenStackBackgroundInputBlocker.BlockScreenStackBackground(screenStackData.IsSystem);
             }
             catch
             {
-                screenStackEntityList.Remove(screenStackEntity);
+                ScreenStackEntityList.Remove(screenStackEntity);
                 screenStackEntity.ScreenStack.Dispose();
                 if (prevScreenStackEntity != null && !screenStackData.IsOverlayOpen)
                 {
@@ -294,11 +294,11 @@ namespace LighthouseExtends.ScreenStack
             }
         }
 
-        async UniTask CloseScreenStackCore(IScreenStackData screenStackData)
+        protected virtual async UniTask CloseScreenStackCore(IScreenStackData screenStackData)
         {
-            if (screenStackDataList == null || !screenStackDataList.Remove(screenStackData))
+            if (ScreenStackDataList == null || !ScreenStackDataList.Remove(screenStackData))
             {
-                foreach (var screenStackDataScene in screenStackDataSceneList)
+                foreach (var screenStackDataScene in ScreenStackDataSceneList)
                 {
                     if (screenStackDataScene.Item2.Remove(screenStackData))
                     {
@@ -309,20 +309,20 @@ namespace LighthouseExtends.ScreenStack
                 return;
             }
 
-            if (!(screenStackEntityList?.Any() ?? false))
+            if (!(ScreenStackEntityList?.Any() ?? false))
             {
                 return;
             }
 
             // If there is a screenStack view, remove it too.
-            var target = screenStackEntityList.FirstOrDefault(x => ReferenceEquals(x.ScreenStackData, screenStackData));
+            var target = ScreenStackEntityList.FirstOrDefault(x => ReferenceEquals(x.ScreenStackData, screenStackData));
             if (target == null)
             {
                 return;
             }
 
-            var isLast = ReferenceEquals(target, screenStackEntityList[^1]);
-            screenStackEntityList.Remove(target);
+            var isLast = ReferenceEquals(target, ScreenStackEntityList[^1]);
+            ScreenStackEntityList.Remove(target);
 
             try
             {
@@ -341,10 +341,10 @@ namespace LighthouseExtends.ScreenStack
                 return;
             }
 
-            var prevScreenStack = screenStackEntityList.LastOrDefault();
+            var prevScreenStack = ScreenStackEntityList.LastOrDefault();
             if (prevScreenStack == null)
             {
-                screenStackBackgroundInputBlocker.UnBlock();
+                ScreenStackBackgroundInputBlocker.UnBlock();
                 return;
             }
 
@@ -364,25 +364,25 @@ namespace LighthouseExtends.ScreenStack
             }
             finally
             {
-                screenStackBackgroundInputBlocker.BlockScreenStackBackground(prevScreenStack.ScreenStackData.IsSystem);
+                ScreenStackBackgroundInputBlocker.BlockScreenStackBackground(prevScreenStack.ScreenStackData.IsSystem);
             }
         }
 
-        async UniTask CloseScreenStackCore()
+        protected virtual async UniTask CloseScreenStackCore()
         {
-            var lastScreenStackData = screenStackDataList?.LastOrDefault();
-            if (lastScreenStackData == null || !screenStackDataList.Remove(lastScreenStackData))
+            var lastScreenStackData = ScreenStackDataList?.LastOrDefault();
+            if (lastScreenStackData == null || !ScreenStackDataList.Remove(lastScreenStackData))
             {
                 return;
             }
 
-            var currentScreenStack = screenStackEntityList.LastOrDefault();
+            var currentScreenStack = ScreenStackEntityList.LastOrDefault();
             if (currentScreenStack == null)
             {
                 return;
             }
 
-            screenStackEntityList.Remove(currentScreenStack);
+            ScreenStackEntityList.Remove(currentScreenStack);
 
             try
             {
@@ -396,10 +396,10 @@ namespace LighthouseExtends.ScreenStack
 
             await UniTask.DelayFrame(1);
 
-            var prevScreenStack = screenStackEntityList.LastOrDefault();
+            var prevScreenStack = ScreenStackEntityList.LastOrDefault();
             if (prevScreenStack == null)
             {
-                screenStackBackgroundInputBlocker.UnBlock();
+                ScreenStackBackgroundInputBlocker.UnBlock();
                 return;
             }
 
@@ -419,26 +419,26 @@ namespace LighthouseExtends.ScreenStack
             }
             finally
             {
-                screenStackBackgroundInputBlocker.BlockScreenStackBackground(prevScreenStack.ScreenStackData.IsSystem);
+                ScreenStackBackgroundInputBlocker.BlockScreenStackBackground(prevScreenStack.ScreenStackData.IsSystem);
             }
         }
 
-        UniTask ClearAllScreenStackCore()
+        protected virtual UniTask ClearAllScreenStackCore()
         {
-            screenStackDataSceneList.Clear();
+            ScreenStackDataSceneList.Clear();
             return ClearCurrentAllScreenStackCore();
         }
 
-        async UniTask ClearCurrentAllScreenStackCore()
+        protected virtual async UniTask ClearCurrentAllScreenStackCore()
         {
-            screenStackDataList?.Clear();
+            ScreenStackDataList?.Clear();
 
-            var lastTarget = screenStackEntityList.LastOrDefault();
-            while (0 < screenStackEntityList.Count)
+            var lastTarget = ScreenStackEntityList.LastOrDefault();
+            while (0 < ScreenStackEntityList.Count)
             {
-                var target = screenStackEntityList[^1];
+                var target = ScreenStackEntityList[^1];
                 var isLast = ReferenceEquals(target, lastTarget);
-                screenStackEntityList.RemoveAt(screenStackEntityList.Count - 1);
+                ScreenStackEntityList.RemoveAt(ScreenStackEntityList.Count - 1);
 
                 try
                 {
@@ -455,48 +455,48 @@ namespace LighthouseExtends.ScreenStack
                 }
             }
 
-            screenStackBackgroundInputBlocker.UnBlock();
-            screenStackEntityList.Clear();
+            ScreenStackBackgroundInputBlocker.UnBlock();
+            ScreenStackEntityList.Clear();
         }
 
-        void ResumeScreenStackFromSceneIdCore(MainSceneId mainSceneId)
+        protected virtual void ResumeScreenStackFromSceneIdCore(MainSceneId mainSceneId)
         {
-            if (screenStackDataSceneList.All(x => x.SceneId != mainSceneId))
+            if (ScreenStackDataSceneList.All(x => x.SceneId != mainSceneId))
             {
                 Debug.LogWarning($"[ScreenStackManager] ResumeFromSceneId: SceneId '{mainSceneId}' not found in suspended stack.");
                 return;
             }
 
-            var (lastMainSceneId, lastScreenStackDataList) = screenStackDataSceneList[^1];
+            var (lastMainSceneId, lastScreenStackDataList) = ScreenStackDataSceneList[^1];
 
             while (lastMainSceneId != mainSceneId)
             {
-                screenStackDataSceneList.RemoveAt(screenStackDataSceneList.Count - 1);
-                (lastMainSceneId, lastScreenStackDataList) = screenStackDataSceneList[^1];
+                ScreenStackDataSceneList.RemoveAt(ScreenStackDataSceneList.Count - 1);
+                (lastMainSceneId, lastScreenStackDataList) = ScreenStackDataSceneList[^1];
             }
 
-            screenStackDataSceneList.RemoveAt(screenStackDataSceneList.Count - 1);
+            ScreenStackDataSceneList.RemoveAt(ScreenStackDataSceneList.Count - 1);
 
-            screenStackDataList = lastScreenStackDataList;
+            ScreenStackDataList = lastScreenStackDataList;
         }
 
-        void ForceDisposeAll()
+        protected virtual void ForceDisposeAll()
         {
-            screenStackDataList?.Clear();
-            screenStackDataSceneList.Clear();
+            ScreenStackDataList?.Clear();
+            ScreenStackDataSceneList.Clear();
 
-            foreach (var entity in screenStackEntityList)
+            foreach (var entity in ScreenStackEntityList)
             {
                 entity.ScreenStack.Dispose();
             }
 
-            screenStackEntityList.Clear();
-            screenStackBackgroundInputBlocker.UnBlock();
+            ScreenStackEntityList.Clear();
+            ScreenStackBackgroundInputBlocker.UnBlock();
         }
 
-        void SuspendScreenStackFromSceneIdCore(MainSceneId mainSceneId)
+        protected virtual void SuspendScreenStackFromSceneIdCore(MainSceneId mainSceneId)
         {
-            screenStackDataSceneList.Add((mainSceneId, screenStackDataList?.ToList() ?? new List<IScreenStackData>()));
+            ScreenStackDataSceneList.Add((mainSceneId, ScreenStackDataList?.ToList() ?? new List<IScreenStackData>()));
         }
     }
 }

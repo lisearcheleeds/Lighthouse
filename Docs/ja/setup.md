@@ -4,8 +4,7 @@
 
 ## スターターキット（UnityPackage）
 
-セットアップの大部分を省略できる UnityPackage を用意しています。  
-[TODO: UnityPackage URL]
+セットアップの大部分を省略できる UnityPackage を [Releases](https://github.com/lisearcheleeds/Lighthouse/releases) から入手できます。
 
 ### 省略できるステップ
 

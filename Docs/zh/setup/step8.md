@@ -121,18 +121,125 @@ public override async UniTask LoadSceneState(TransitionDirectionType dir, Cancel
 
 ### 产品公共基类（推荐）
 
-建议创建一个中间基类，集中处理所有场景共通的逻辑，例如动画和输入层处理。
+创建一个中间基类，统一管理动画、InputLayer 的 Push/Pop 以及 AssetScope。各场景继承此类即可减少样板代码。
 
 ```csharp
-// 集中处理产品全局公共逻辑的中间基类
-public abstract class YourProductCanvasMainSceneBase<TTransitionData> : CanvasMainSceneBase<TTransitionData>
+[RequireComponent(typeof(LHSceneTransitionAnimatorManager))]
+public abstract class YourProductCanvasMainSceneBase<TTransitionData>
+    : CanvasMainSceneBase<TTransitionData>
     where TTransitionData : TransitionDataBase
 {
-    // 在此添加动画·输入层等公共处理
+    [SerializeField] LHSceneTransitionAnimatorManager sceneTransitionAnimatorManager;
+
+    IInputLayerController inputLayerController;
+    IInputLayer currentInputLayer;
+    IAssetManager assetManager;
+    InputActions inputActions;
+
+    protected IAssetScope AssetScope { get; private set; }
+
+    [Inject]
+    public void Construct(
+        IInputLayerController inputLayerController,
+        InputActions inputActions,
+        IAssetManager assetManager)
+    {
+        this.inputLayerController = inputLayerController;
+        this.inputActions = inputActions;
+        this.assetManager = assetManager;
+    }
+
+    // 返回该场景使用的 InputLayer（不需要时返回 null）
+    protected virtual IInputLayer CreateInputLayer(InputActions inputActions) => null;
+
+    protected virtual InputActionMap GetInputLayerActionMap(InputActions inputActions)
+        => inputActions.Scene;
+
+    protected override UniTask OnSetup()
+    {
+        AssetScope = assetManager.CreateScope();
+        return base.OnSetup();
+    }
+
+    public override async UniTask OnUnload()
+    {
+        await base.OnUnload();
+        AssetScope?.Dispose();
+        AssetScope = null;
+    }
+
+    protected override async UniTask OnEnter(ISceneTransitionContext context, CancellationToken ct)
+    {
+        var layer = CreateInputLayer(inputActions);
+        var map   = GetInputLayerActionMap(inputActions);
+        if (layer != null && map != null)
+        {
+            currentInputLayer = layer;
+            inputLayerController.PushLayer(currentInputLayer, map);
+        }
+        await base.OnEnter(context, ct);
+    }
+
+    protected override async UniTask OnLeave(ISceneTransitionContext context, CancellationToken ct)
+    {
+        await base.OnLeave(context, ct);
+        if (currentInputLayer != null)
+        {
+            inputLayerController.PopLayer(currentInputLayer);
+            currentInputLayer = null;
+        }
+    }
+
+    public override void ResetInAnimation(ISceneTransitionContext context)
+        => sceneTransitionAnimatorManager.ResetInAnimation();
+
+    protected override async UniTask InAnimation(ISceneTransitionContext context)
+        => await sceneTransitionAnimatorManager.InAnimation();
+
+    protected override async UniTask OutAnimation(ISceneTransitionContext context)
+        => await sceneTransitionAnimatorManager.OutAnimation();
+
+#if UNITY_EDITOR
+    protected override void OnValidate()
+    {
+        base.OnValidate();
+        sceneTransitionAnimatorManager ??= GetComponent<LHSceneTransitionAnimatorManager>();
+    }
+#endif
 }
 ```
 
-各场景继承此类即可减少样板代码。
+各场景的实现因此变得极为简洁。
+
+```csharp
+public class HomeScene : YourProductCanvasMainSceneBase<HomeScene.HomeTransitionData>
+{
+    IHomePresenter homePresenter;
+
+    public override MainSceneId MainSceneId => YourProductMainSceneId.Home;
+
+    public class HomeTransitionData : TransitionDataBase
+    {
+        public override MainSceneId MainSceneId => YourProductMainSceneId.Home;
+    }
+
+    [Inject]
+    public void Construct(IHomePresenter homePresenter)
+    {
+        this.homePresenter = homePresenter;
+    }
+
+    protected override IInputLayer CreateInputLayer(InputActions inputActions)
+        => new DefaultSceneInputLayer(inputActions);
+
+    protected override UniTask OnEnter(HomeTransitionData data,
+        ISceneTransitionContext context, CancellationToken ct)
+    {
+        homePresenter.OnEnter();
+        return UniTask.CompletedTask;
+    }
+}
+```
 
 ### SceneGroupProvider 实现
 
@@ -163,14 +270,41 @@ public sealed class SceneGroupProvider : ISceneGroupProvider
         new[] { YourProductMainSceneId.Home },
     };
 
+    static readonly SceneGroup[] SceneGroupList = CreateSceneGroups();
+
     SceneGroup ISceneGroupProvider.GetSceneGroup(MainSceneId mainSceneId)
     {
         return SceneGroupList.First(g => g.MainSceneIds.Contains(mainSceneId));
     }
 
-    // ...（SceneGroup 构建逻辑）
+    static SceneGroup[] CreateSceneGroups()
+    {
+#if UNITY_EDITOR
+        // 编辑器模式下检测是否有场景被分配到多个组
+        var duplicates = MainSceneGroupList
+            .SelectMany(g => g)
+            .GroupBy(id => id.Name)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToArray();
+        if (duplicates.Length > 0)
+            throw new Exception($"SceneGroupList 中存在重复场景: {string.Join(", ", duplicates)}");
+#endif
+        return MainSceneGroupList.Select(CreateSceneGroup).ToArray();
+    }
+
+    static SceneGroup CreateSceneGroup(MainSceneId[] mainSceneIds)
+    {
+        var map = mainSceneIds.ToDictionary(
+            id => id,
+            id => RequireModuleSceneIds
+                .Concat(SceneModuleMap[id] ?? Array.Empty<ModuleSceneId>())
+                .ToArray());
+
+        return new SceneGroup(map);
+    }
 }
 ```
 
 > `MainSceneGroupList` 的定义决定了场景的缓存策略。  
-> 同一组内的场景会同时加载并缓存。
+> 同一组内的场景会同时加载并缓存。场景必须且只能属于一个组 — 编辑器模式下的重复检查可提前发现配置错误。

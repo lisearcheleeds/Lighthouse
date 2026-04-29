@@ -16,8 +16,7 @@
 The Lighthouse scene system works in conjunction with VContainer DI scopes.  
 By preparing the following scripts, Prefabs, and ScriptableObjects, the application startup flow is configured.
 
-> VContainer basics: **[TODO: VContainer documentation URL]**  
-> Unity project initial setup helper: **[TODO: Preset startup unity package URL]**
+> VContainer basics: [https://vcontainer.hadashikick.jp](https://vcontainer.hadashikick.jp)
 
 ### Recommended File Structure
 
@@ -122,14 +121,17 @@ Register the Lighthouse services you use in `ProductLifetimeScope`.
 public class ProductLifetimeScope : LifetimeScope
 {
     [SerializeField] ProductLifetimeScopeSettings productLifetimeScopeSettings;
-    // ...other fields (LHCanvasSceneObject, SupportedLanguageSettings, etc.)
+    [SerializeField] SupportedLanguageSettings supportedLanguageSettings;  // when using Language
+    [SerializeField] LanguageFontSettings languageFontSettings;            // when using Font
+    [SerializeField] LHCanvasSceneObject canvasSceneObjectPrefab;
+    [SerializeField] LHInputBlocker inputBlockerPrefab;
 
     protected override void Configure(IContainerBuilder builder)
     {
         builder.RegisterEntryPoint<ProductEntryPoint>();
         builder.RegisterInstance(productLifetimeScopeSettings);
 
-        // Lighthouse core services
+        // Lighthouse core
         builder.Register<SceneManager>(Lifetime.Singleton).AsImplementedInterfaces();
         builder.Register<SceneTransitionController>(Lifetime.Singleton).AsImplementedInterfaces();
         builder.Register<DefaultSceneTransitionContextFactory>(Lifetime.Singleton).AsImplementedInterfaces();
@@ -139,28 +141,108 @@ public class ProductLifetimeScope : LifetimeScope
         builder.Register<SceneCameraManager>(Lifetime.Singleton).AsImplementedInterfaces();
         builder.Register<DefaultSceneTransitionSequenceProvider>(Lifetime.Singleton).AsImplementedInterfaces();
 
-        // Add LighthouseExtends services as needed
+        // LighthouseExtends — Language / Font / TextTable
+        builder.RegisterInstance(supportedLanguageSettings);
+        builder.Register<SupportedLanguageService>(Lifetime.Singleton).AsImplementedInterfaces();
+        builder.Register<LanguageService>(Lifetime.Singleton).AsImplementedInterfaces();
+        builder.RegisterInstance(languageFontSettings);
+        builder.Register<FontService>(Lifetime.Singleton).AsImplementedInterfaces();
+        builder.Register<TextTableService>(Lifetime.Singleton).AsImplementedInterfaces();
+
+        // FontService and TextTableService are lazy by default.
+        // Force eager resolution so they register their handlers with ILanguageService
+        // before SetLanguage is called in ProductEntryPoint.
+        builder.RegisterBuildCallback(container =>
+        {
+            container.Resolve<IFontService>();
+            container.Resolve<ITextTableService>();
+        });
+
+        // LighthouseExtends — UIComponent / InputLayer
+        builder.Register<ExclusiveInputService>(Lifetime.Singleton).AsImplementedInterfaces();
+        builder.RegisterComponentInNewPrefab(canvasSceneObjectPrefab, Lifetime.Singleton)
+            .DontDestroyOnLoad().AsImplementedInterfaces();
+        builder.RegisterComponentInNewPrefab(inputBlockerPrefab, Lifetime.Singleton)
+            .DontDestroyOnLoad().AsImplementedInterfaces();
+
+        var inputActions = new InputActions();
+        builder.RegisterInstance(inputActions);
+        builder.RegisterInstance(inputActions.asset).As<InputActionAsset>();
+        builder.Register<InputLayerController>(Lifetime.Singleton).AsImplementedInterfaces();
+
+        // LighthouseExtends — ScreenStack
+        builder.Register<ScreenStackModuleProxy>(Lifetime.Singleton).AsImplementedInterfaces();
+
+        // Product services
+        builder.Register<Launcher>(Lifetime.Singleton).AsImplementedInterfaces();
     }
 }
 ```
 
-In `ProductEntryPoint`, set the parent scope on scene managers and trigger the initial scene launch.
+> **Why `RegisterBuildCallback` for FontService and TextTableService?**  
+> VContainer resolves singletons lazily by default. FontService and TextTableService must register their change handlers with `ILanguageService` *before* `SetLanguage` is called in `ProductEntryPoint`. Without this, the first language switch would complete before fonts or text tables are loaded, leaving the UI in an incorrect state.
+
+In `ProductEntryPoint`, set the parent scope on scene managers and resolve the initial language from the device locale.
 
 ```csharp
 public class ProductEntryPoint : IAsyncStartable
 {
-    // ... fields and [Inject] constructor
+    readonly ProductLifetimeScope productLifetimeScope;
+    readonly ILauncher launcher;
+    readonly IMainSceneManager mainSceneManager;
+    readonly IModuleSceneManager moduleSceneManager;
+    readonly ILanguageService languageService;
+    readonly ISupportedLanguageService supportedLanguageService;
+
+    [Inject]
+    public ProductEntryPoint(
+        ProductLifetimeScope productLifetimeScope,
+        ILauncher launcher,
+        IMainSceneManager mainSceneManager,
+        IModuleSceneManager moduleSceneManager,
+        ILanguageService languageService,
+        ISupportedLanguageService supportedLanguageService)
+    {
+        this.productLifetimeScope = productLifetimeScope;
+        this.launcher = launcher;
+        this.mainSceneManager = mainSceneManager;
+        this.moduleSceneManager = moduleSceneManager;
+        this.languageService = languageService;
+        this.supportedLanguageService = supportedLanguageService;
+    }
 
     public async UniTask StartAsync(CancellationToken cancellation)
     {
-        mainSceneManager.SetEnqueueParentLifetimeScope(() => LifetimeScope.EnqueueParent(productLifetimeScope));
-        moduleSceneManager.SetEnqueueParentLifetimeScope(() => LifetimeScope.EnqueueParent(productLifetimeScope));
+        mainSceneManager.SetEnqueueParentLifetimeScope(
+            () => LifetimeScope.EnqueueParent(productLifetimeScope));
+        moduleSceneManager.SetEnqueueParentLifetimeScope(
+            () => LifetimeScope.EnqueueParent(productLifetimeScope));
 
-        // Language initialization (when using Language)
-        await languageService.SetLanguage("ja", cancellation);
+        await languageService.SetLanguage(
+            ResolveInitialLanguage(Application.systemLanguage), cancellation);
 
-        // Transition to the initial scene, etc.
         await launcher.Launch();
+    }
+
+    string ResolveInitialLanguage(SystemLanguage systemLanguage)
+    {
+        var code = systemLanguage switch
+        {
+            SystemLanguage.Japanese          => "ja",
+            SystemLanguage.ChineseSimplified  => "zh",
+            SystemLanguage.ChineseTraditional => "zh",
+            SystemLanguage.Korean            => "ko",
+            _                                => "en",
+        };
+
+        // Fall back to the configured default if the resolved code is not supported.
+        var supported = supportedLanguageService.SupportedLanguages;
+        for (var i = 0; i < supported.Count; i++)
+        {
+            if (supported[i] == code) return code;
+        }
+
+        return supportedLanguageService.DefaultLanguage;
     }
 }
 ```

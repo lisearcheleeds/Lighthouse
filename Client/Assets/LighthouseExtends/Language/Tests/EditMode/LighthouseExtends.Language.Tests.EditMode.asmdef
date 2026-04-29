@@ -3,7 +3,9 @@
     "rootNamespace": "",
     "references": [
         "LighthouseExtends.Language.Runtime",
-        "UniTask"
+        "UniTask",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
     ],
     "includePlatforms": [
         "Editor"
@@ -12,13 +14,14 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
+        "nunit.framework.dll",
         "R3.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false,
-    "optionalUnityReferences": [
-        "TestAssemblies"
+    "testPlatforms": [
+        "EditMode"
     ]
 }

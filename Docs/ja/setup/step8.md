@@ -121,18 +121,125 @@ public override async UniTask LoadSceneState(TransitionDirectionType dir, Cancel
 
 ### プロダクト共通の基底クラス（推奨）
 
-アニメーションやインプットレイヤーなど、シーン全体で共通の処理をまとめた中間基底クラスを用意することを推奨します。
+アニメーション・InputLayer の Push/Pop・AssetScope の管理をまとめた中間基底クラスを用意します。各シーンはこのクラスを継承することでボイラープレートを削減できます。
 
 ```csharp
-// プロダクト全体で共通の処理をまとめた中間基底クラス
-public abstract class YourProductCanvasMainSceneBase<TTransitionData> : CanvasMainSceneBase<TTransitionData>
+[RequireComponent(typeof(LHSceneTransitionAnimatorManager))]
+public abstract class YourProductCanvasMainSceneBase<TTransitionData>
+    : CanvasMainSceneBase<TTransitionData>
     where TTransitionData : TransitionDataBase
 {
-    // アニメーション・入力レイヤーなど共通処理をここに追加
+    [SerializeField] LHSceneTransitionAnimatorManager sceneTransitionAnimatorManager;
+
+    IInputLayerController inputLayerController;
+    IInputLayer currentInputLayer;
+    IAssetManager assetManager;
+    InputActions inputActions;
+
+    protected IAssetScope AssetScope { get; private set; }
+
+    [Inject]
+    public void Construct(
+        IInputLayerController inputLayerController,
+        InputActions inputActions,
+        IAssetManager assetManager)
+    {
+        this.inputLayerController = inputLayerController;
+        this.inputActions = inputActions;
+        this.assetManager = assetManager;
+    }
+
+    // このシーンで使う InputLayer を返す（不要な場合は null を返す）
+    protected virtual IInputLayer CreateInputLayer(InputActions inputActions) => null;
+
+    protected virtual InputActionMap GetInputLayerActionMap(InputActions inputActions)
+        => inputActions.Scene;
+
+    protected override UniTask OnSetup()
+    {
+        AssetScope = assetManager.CreateScope();
+        return base.OnSetup();
+    }
+
+    public override async UniTask OnUnload()
+    {
+        await base.OnUnload();
+        AssetScope?.Dispose();
+        AssetScope = null;
+    }
+
+    protected override async UniTask OnEnter(ISceneTransitionContext context, CancellationToken ct)
+    {
+        var layer = CreateInputLayer(inputActions);
+        var map   = GetInputLayerActionMap(inputActions);
+        if (layer != null && map != null)
+        {
+            currentInputLayer = layer;
+            inputLayerController.PushLayer(currentInputLayer, map);
+        }
+        await base.OnEnter(context, ct);
+    }
+
+    protected override async UniTask OnLeave(ISceneTransitionContext context, CancellationToken ct)
+    {
+        await base.OnLeave(context, ct);
+        if (currentInputLayer != null)
+        {
+            inputLayerController.PopLayer(currentInputLayer);
+            currentInputLayer = null;
+        }
+    }
+
+    public override void ResetInAnimation(ISceneTransitionContext context)
+        => sceneTransitionAnimatorManager.ResetInAnimation();
+
+    protected override async UniTask InAnimation(ISceneTransitionContext context)
+        => await sceneTransitionAnimatorManager.InAnimation();
+
+    protected override async UniTask OutAnimation(ISceneTransitionContext context)
+        => await sceneTransitionAnimatorManager.OutAnimation();
+
+#if UNITY_EDITOR
+    protected override void OnValidate()
+    {
+        base.OnValidate();
+        sceneTransitionAnimatorManager ??= GetComponent<LHSceneTransitionAnimatorManager>();
+    }
+#endif
 }
 ```
 
-各シーンはこのクラスを継承することで、ボイラープレートを削減できます。
+各シーンは最小限の実装になります。
+
+```csharp
+public class HomeScene : YourProductCanvasMainSceneBase<HomeScene.HomeTransitionData>
+{
+    IHomePresenter homePresenter;
+
+    public override MainSceneId MainSceneId => YourProductMainSceneId.Home;
+
+    public class HomeTransitionData : TransitionDataBase
+    {
+        public override MainSceneId MainSceneId => YourProductMainSceneId.Home;
+    }
+
+    [Inject]
+    public void Construct(IHomePresenter homePresenter)
+    {
+        this.homePresenter = homePresenter;
+    }
+
+    protected override IInputLayer CreateInputLayer(InputActions inputActions)
+        => new DefaultSceneInputLayer(inputActions);
+
+    protected override UniTask OnEnter(HomeTransitionData data,
+        ISceneTransitionContext context, CancellationToken ct)
+    {
+        homePresenter.OnEnter();
+        return UniTask.CompletedTask;
+    }
+}
+```
 
 ### SceneGroupProvider の実装
 
@@ -163,14 +270,41 @@ public sealed class SceneGroupProvider : ISceneGroupProvider
         new[] { YourProductMainSceneId.Home },
     };
 
+    static readonly SceneGroup[] SceneGroupList = CreateSceneGroups();
+
     SceneGroup ISceneGroupProvider.GetSceneGroup(MainSceneId mainSceneId)
     {
         return SceneGroupList.First(g => g.MainSceneIds.Contains(mainSceneId));
     }
 
-    // ... （SceneGroup の構築ロジック）
+    static SceneGroup[] CreateSceneGroups()
+    {
+#if UNITY_EDITOR
+        // 同一シーンが複数グループに割り当てられていないかエディター時に検証する
+        var duplicates = MainSceneGroupList
+            .SelectMany(g => g)
+            .GroupBy(id => id.Name)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToArray();
+        if (duplicates.Length > 0)
+            throw new Exception($"SceneGroupList に重複シーンがあります: {string.Join(", ", duplicates)}");
+#endif
+        return MainSceneGroupList.Select(CreateSceneGroup).ToArray();
+    }
+
+    static SceneGroup CreateSceneGroup(MainSceneId[] mainSceneIds)
+    {
+        var map = mainSceneIds.ToDictionary(
+            id => id,
+            id => RequireModuleSceneIds
+                .Concat(SceneModuleMap[id] ?? Array.Empty<ModuleSceneId>())
+                .ToArray());
+
+        return new SceneGroup(map);
+    }
 }
 ```
 
 > `MainSceneGroupList` の定義によってシーンのキャッシュ戦略が変わります。  
-> 同じグループ内のシーンは同時に読み込まれてキャッシュされます。
+> 同じグループ内のシーンは同時に読み込まれてキャッシュされます。シーンは必ず1つのグループにのみ属してください。エディター時の重複チェックが設定ミスを早期に検出します。

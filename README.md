@@ -4,8 +4,7 @@
 
 A Unity application framework providing a structured scene management system, dialog stack, and a set of extensible runtime modules — built on [VContainer](https://github.com/hadashiA/VContainer) and [UniTask](https://github.com/Cysharp/UniTask).
 
-The current version is 0.9.0, a pre-release.
-Version 1.0.0 is scheduled for April 29th.
+The current version is **1.0.0**.
 
 <img width="1677" height="938" alt="lighthouse" src="https://github.com/user-attachments/assets/f0e9c5de-f858-4e0d-be63-7e57a4d6558c" />
 
@@ -48,16 +47,17 @@ Open `Packages/manifest.json` and add the packages you need:
 ```json
 {
   "dependencies": {
-    "com.lisearcheleeds.lighthouse": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/Lighthouse#v0.9.0",
+    "com.lisearcheleeds.lighthouse": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/Lighthouse#v1.0.0",
 
-    "com.lisearcheleeds.lighthouse-extends.animation":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Animation#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.inputlayer":  "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/InputLayer#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.language":    "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Language#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.font":        "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Font#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.texttable":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextTable#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.textmeshpro": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextMeshPro#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.uicomponent": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/UIComponent#v0.9.0",
-    "com.lisearcheleeds.lighthouse-extends.screenstack": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/ScreenStack#v0.9.0"
+    "com.lisearcheleeds.lighthouse-extends.animation":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Animation#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.inputlayer":  "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/InputLayer#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.language":    "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Language#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.font":        "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Font#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.texttable":   "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextTable#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.textmeshpro": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/TextMeshPro#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.uicomponent": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/UIComponent#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.screenstack": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/ScreenStack#v1.0.0",
+    "com.lisearcheleeds.lighthouse-extends.addressable": "https://github.com/lisearcheleeds/Lighthouse.git?path=Client/Assets/LighthouseExtends/Addressable#v1.0.0"
   }
 }
 ```
@@ -113,6 +113,7 @@ Download the latest `.unitypackage` from [Releases](https://github.com/lisearche
 
 | Module | Description |
 |---|---|
+| **Addressable** | `AssetManager` — Ref-counted Addressables wrapper with scoped asset lifetime management and parallel loading support. |
 | **Animation** | `LHTransitionAnimator` / `LHSceneTransitionAnimator` — In/Out clip playback via `PlayableGraph`, with per-direction start delay and mutual exclusion. |
 | **Language** | `LanguageService` — Reactive language switching; registered handlers are called in parallel before `CurrentLanguage` updates. |
 | **Font** | `FontService` — Subscribes to `ILanguageService` and updates `CurrentFont` (TMP_FontAsset) from `LanguageFontSettings` on each language change. |
@@ -135,6 +136,7 @@ LighthouseArchitecture/
 │       └── *.cs                    # SceneManager, context, data models
 │
 └── LighthouseExtends/              # Optional runtime & editor modules
+    ├── Addressable/
     ├── Animation/
     ├── Font/
     ├── InputLayer/
